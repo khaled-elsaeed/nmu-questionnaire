@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('action_logs', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id')->nullable(); // Nullable for guest users
+            $table->unsignedBigInteger('user_id')->nullable(); 
             $table->string('ip_address');
             $table->string('url');
-            $table->string('method'); // e.g., GET, POST
-            $table->string('action'); // Description of the action
-            $table->text('note')->nullable(); // Note column for custom notes
+            $table->string('method'); 
+            $table->string('action'); 
+            $table->text('note')->nullable(); 
             $table->timestamps();
         });
     }

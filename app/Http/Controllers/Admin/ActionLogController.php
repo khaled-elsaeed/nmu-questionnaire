@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 class ActionLogController extends Controller
 {
-    // Log a new action
+    
     public function store(Request $request)
     {
         $request->validate([

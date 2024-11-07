@@ -34,7 +34,7 @@ class QuestionnairesController extends Controller
     public function create()
     {
         try {
-            $faculties = Faculty::pluck('name', 'id'); // This returns a collection of faculties
+            $faculties = Faculty::pluck('name', 'id');
             $modules = QuestionModule::pluck('name', 'id');
             return view('admin.questionnaires.create', compact('modules','faculties'));
         } catch (\Exception $exception) {
@@ -47,37 +47,32 @@ class QuestionnairesController extends Controller
 
     public function store(Request $request)
     {
-        // Validate incoming request data
         $request->validate([
             'title' => 'required|string',
             'description' => 'required|string',
             'start_date' => 'required|date',
             'end_date' => 'required|date',
             'is_active' => 'required|boolean',
-            'questions' => 'required|array|min:1', // Require at least one question
+            'questions' => 'required|array|min:1', 
             'questions.*' => 'exists:questions,id',
-            'audience_data' => 'required|string', // Expecting JSON string of audience data
+            'audience_data' => 'required|string', 
         ]);
     
         try {
             \DB::transaction(function () use ($request) {
                 $questionnaire = Questionnaire::create($request->only(['title', 'description', 'start_date', 'end_date', 'is_active']));
     
-                // Attach questions to the questionnaire with default values
                 $questionnaire->questions()->attach($request->questions, ['display_order' => 0, 'is_mandatory' => false]);
     
-                // Decode the JSON audience data
                 $audiences = json_decode($request->input('audience_data'), true);
                 if (json_last_error() !== JSON_ERROR_NONE) {
                     throw new \Exception("Invalid JSON format in audience_data");
                 }
     
-                // Process each audience target
                 foreach ($audiences as $audience) {
                     foreach ($audience['faculties'] as $facultyData) {
-                        $facultyId = $facultyData['id'] === 'all' ? null : $facultyData['id']; // 'all' means no specific faculty
+                        $facultyId = $facultyData['id'] === 'all' ? null : $facultyData['id']; 
     
-                        // Handle faculty-wide target without specific departments
                         if (empty($facultyData['departments'])) {
                             QuestionnaireTarget::create([
                                 'questionnaire_id' => $questionnaire->id,
@@ -89,12 +84,10 @@ class QuestionnairesController extends Controller
                                 'scope_type' => $audience['scope_type'],
                             ]);
                         } else {
-                            // Handle each department within the faculty
                             foreach ($facultyData['departments'] as $departmentData) {
                                 $deptId = $departmentData['id'];
     
                                 if (empty($departmentData['programs'])) {
-                                    // Target department-wide without specific programs
                                     QuestionnaireTarget::create([
                                         'questionnaire_id' => $questionnaire->id,
                                         'faculty_id' => $facultyId,
@@ -105,7 +98,6 @@ class QuestionnairesController extends Controller
                                         'scope_type' => $audience['scope_type'],
                                     ]);
                                 } else {
-                                    // Handle each program within the department
                                     foreach ($departmentData['programs'] as $programData) {
                                         $programId = $programData['id'];
                                         QuestionnaireTarget::create([

@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('questionnaires', function (Blueprint $table) {
             $table->id();
-            $table->string('title'); // Title of the questionnaire
-            $table->text('description'); // Description of the questionnaire
-            $table->date('start_date'); // Start date for the questionnaire
-            $table->date('end_date'); // End date for the questionnaire
-            $table->boolean('is_active')->default(true); // Active status
-            $table->timestamps(); // Created and updated timestamps
+            $table->string('title'); 
+            $table->text('description'); 
+            $table->date('start_date'); 
+            $table->date('end_date'); 
+            $table->boolean('is_active')->default(true); 
+            $table->timestamps(); 
         });
     }
 
