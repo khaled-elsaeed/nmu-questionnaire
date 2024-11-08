@@ -9,13 +9,13 @@
     <entity-names>
       <counter>
         <item-type type-id="erd-entity" type="Entity" />
-        <value>16</value>
+        <value>17</value>
       </counter>
     </entity-names>
     <entity-ids>
       <counter>
         <item-type type-id="erd-entity" type="Entity" />
-        <value>17</value>
+        <value>18</value>
       </counter>
       <counter>
         <item-type type-id="universal-connector" type="Universal Connector" />
@@ -91,6 +91,7 @@
         <phone-number />
         <description />
         <color>#00000000</color>
+        <working-schedule uid="ws-1e21b6c1475345178bddaaca13e89cae" hours="8" monday="8" tuesday="8" wednesday="8" thursday="8" friday="8" saturday="0" sunday="0" />
       </person>
     </persons>
     <teams />
@@ -136,7 +137,7 @@
       </meta>
       <abstract-items />
       <sub-models />
-      <diagram type="entity-relationship" id="pea26b5e532b8495b8fcbd1eb5dd0036f_608840766" name="EntityRelationshipDiagram1" order-index="1" uid="" name-style="" auto-routed-paths="false" default-line-style="default" view-location="-696,-169" zoom="0.8">
+      <diagram type="entity-relationship" id="pea26b5e532b8495b8fcbd1eb5dd0036f_608840766" name="EntityRelationshipDiagram1" order-index="1" uid="" name-style="" auto-routed-paths="false" default-line-style="default" view-location="-1008,63" zoom="0.7">
         <style>
           <background-color index="1" color="#FFFFFFFF" />
           <background-color index="2" color="#FFFFFFFF" />
@@ -148,7 +149,7 @@
           </authors>
           <description />
           <creation-date>10/30/2024 23:17:43</creation-date>
-          <change-date>11/02/2024 11:56:39</change-date>
+          <change-date>11/08/2024 18:46:12</change-date>
           <revision-count>0</revision-count>
           <version />
         </meta>
@@ -213,6 +214,9 @@
             <erd-relation type="Identifying" multiplicity-from="0..1" multiplicity-to="*">
               <attribute-pairs />
             </erd-relation>
+          </item>
+          <item id="23f9e32fcbcd47ada5691c1b3bbc7a09" cid="ENT017" type="erd-entity" name="Entity17" creation-date="11/08/2024 18:46:12">
+            <entity description="" />
           </item>
           <item id="0c86f54b884d4aedb94e0d832966e3bb" cid="ENT012" type="erd-entity" name="faculties" creator="" creation-date="11/02/2024 10:49:49">
             <entity description="" />
@@ -321,14 +325,14 @@
               <attribute uid="a6afdc9db235b44eea347ece016332e81742" cid="EA054" name="description" type="String" type-id="Uml.String" nullable="false" creation-date="11/02/2024 11:50:18" />
             </attributes>
           </item>
-          <item id="daaa8953560a4e94a87093e838dac027" cid="REL015" type="erd-relationship" style-class="Flat Light White" creator="" creation-date="10/31/2024 00:45:24" from="2c977c0f0ceb4951b17023980c9d5216" to="27d7a65764d74b8289fe02616e6c8c24">
-            <style class="Flat Light White" />
-            <erd-relation type="Identifying" multiplicity-from="1" multiplicity-to="*">
+          <item id="80c25f0ea7cb4f1c8a0ccb6f4bf777b0" cid="REL036" type="erd-relationship" creator="" creation-date="11/02/2024 11:56:39" from="075475dcdcee42798c67aa9e7c1fbdaf" to="138e4f9189624bd3b2273dd860071c67">
+            <erd-relation type="Identifying" multiplicity-from="*" multiplicity-to="*">
               <attribute-pairs />
             </erd-relation>
           </item>
-          <item id="80c25f0ea7cb4f1c8a0ccb6f4bf777b0" cid="REL036" type="erd-relationship" creator="" creation-date="11/02/2024 11:56:39" from="075475dcdcee42798c67aa9e7c1fbdaf" to="138e4f9189624bd3b2273dd860071c67">
-            <erd-relation type="Identifying" multiplicity-from="*" multiplicity-to="*">
+          <item id="daaa8953560a4e94a87093e838dac027" cid="REL015" type="erd-relationship" style-class="Flat Light White" creator="" creation-date="10/31/2024 00:45:24" from="2c977c0f0ceb4951b17023980c9d5216" to="27d7a65764d74b8289fe02616e6c8c24">
+            <style class="Flat Light White" />
+            <erd-relation type="Identifying" multiplicity-from="1" multiplicity-to="*">
               <attribute-pairs />
             </erd-relation>
           </item>
@@ -495,7 +499,7 @@
                 <point x="467" y="-14" />
               </points>
             </layout>
-            <relation from="0a068de258b744958837d11799f4ad99" from-iid="3fe29ae1d7184934a77e700d3724a4ad" to="0c86f54b884d4aedb94e0d832966e3bb" to-iid="433111521e064db9a283b8733b0ad1da" to-field="a76cf585555ec42feb28d653318df8c27218" />
+            <relation from="0a068de258b744958837d11799f4ad99" from-iid="3fe29ae1d7184934a77e700d3724a4ad" to="0c86f54b884d4aedb94e0d832966e3bb" to-iid="433111521e064db9a283b8733b0ad1da" />
           </item>
           <item id="db8c49fff63c4499ab96306a6eaf37fe" iid="74d13a5c1d774ea188a6207de131ffca" creation-date="11/02/2024 11:04:13" order-index="29" type="relation">
             <layout start-role-position="25,15" end-role-position="25,-15" line-style="oblique" lock-start-point="true" lock-end-point="true" lock-to-fields="false" auto-path="" x1="-153" y1="84" x2="26" y2="115" start-border-pos="0.5" end-border-pos="0.8750586587874616" name-position="0,20">
@@ -562,6 +566,10 @@
               </points>
             </layout>
             <relation from="075475dcdcee42798c67aa9e7c1fbdaf" from-iid="05f4bd6902634a699322d7433a9235be" to="138e4f9189624bd3b2273dd860071c67" to-iid="ec586b95fabf4833a3bf888693513207" />
+          </item>
+          <item id="23f9e32fcbcd47ada5691c1b3bbc7a09" iid="4a5e5b95379547338c1c0885580c5406" creation-date="11/08/2024 18:46:12" order-index="37" type="entity">
+            <layout ax="-1118" ay="1045" awidth="144" aheight="161" x="-1118" y="1045" width="140" height="160" />
+            <erd-entity show-nullability="true" />
           </item>
         </layer>
       </diagram>
