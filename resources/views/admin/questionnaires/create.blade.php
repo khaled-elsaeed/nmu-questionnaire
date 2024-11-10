@@ -73,7 +73,7 @@
         <div class="card-body">
             <form id="create-questionnaire-form">
                 @csrf
-                <!-- Questionnaire Details -->
+                
                 <div class="form-section">
                     <h6>Questionnaire Details</h6>
                     <div class="mb-3">
@@ -116,7 +116,7 @@
                     </div>
                 </div>
 
-                <!-- Select Question Module -->
+                
                 <div class="form-section">
                     <h6>Select Question Module</h6>
                     <select class="form-select" id="module_select" name="module_id" required>
@@ -130,29 +130,29 @@
                     @enderror
                 </div>
 
-                <!-- Choose Questions from Module -->
+                
                 <div id="questions-container" class="form-section">
                     <h6>Available Questions in Module</h6>
                     <div id="question-list" class="mb-3"></div>
                 </div>
 
-                <!-- Display Selected Questions -->
+                
                 <div class="form-section bg-light">
                     <h6>Selected Questions</h6>
                     <div id="selected-questions" class="accordion" id="accordionSelectedQuestions"></div>
                 </div>
 
-<!-- Target Audience Section -->
+
 <div class="form-section">
     <h6>Target Audience</h6>
     
-    <!-- Audience Options -->
+    
     <div class="form-check">
         <input class="form-check-input" type="checkbox" name="audience[]" value="student" id="students">
         <label class="form-check-label" for="students">Students</label>
     </div>
 
-   <!-- Faculty Options Section -->
+   
 <div id="faculty-options" style="display: none; padding-left: 1.5rem;">
     <div class="form-check">
         <input class="form-check-input" type="radio" name="faculty_option" value="all_faculty" id="all_faculty">
@@ -163,11 +163,11 @@
         <label class="form-check-label" for="specific_faculty">Specific Faculty</label>
     </div>
 
-    <!-- Specific Faculty Options with Departments and Programs -->
+    
     <div id="specific-faculty-options" style="display: none; padding-left: 2rem;">
         <h6>Select Specific Faculty, Department, and Program</h6>
         @foreach($faculties as $id => $name)
-    <!-- Faculty Section -->
+    
     <div class="form-check">
         <input class="form-check-input specific-faculty-option" type="checkbox" name="faculty_specific[]" value="{{ $id }}" id="faculty_{{ $id }}">
         <label class="form-check-label" for="faculty_{{ $id }}">{{ $name }}</label>
@@ -175,18 +175,18 @@
 
     <div id="faculty_{{ $id }}-departments" style="display: none; padding-left: 1.5rem;">
         <h6>Departments</h6>
-        <div id="departments_{{ $id }}"></div> <!-- Placeholder for departments -->
+        <div id="departments_{{ $id }}"></div> 
     </div>
 @endforeach
 
 
 
-        <!-- Additional faculties, departments, and programs can be added in the same format as above -->
+        
     </div>
 </div>
 
 
-    <!-- Other Audiences -->
+    
     <div class="form-check">
         <input class="form-check-input" type="checkbox" name="audience[]" value="teaching_assistant" id="teaching_assistant">
         <label class="form-check-label" for="teaching_assistant">Teaching Assistants</label>
@@ -202,14 +202,14 @@
 
 
 
-                <!-- Submit Button -->
+                
                 <button type="submit" class="btn btn-primary">Create Questionnaire</button>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Options Modal -->
+
 <div class="modal fade" id="optionsModal" tabindex="-1" role="dialog" aria-labelledby="optionsModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -372,7 +372,7 @@ $(document).ready(function() {
                                 </div>
                                 <div id="faculty_${facultyId}_department_${department.id}-programs" style="display: none; padding-left: 1.5rem;">
                                     <h6>Programs</h6>
-                                    <div id="programs_${facultyId}_${department.id}"></div> <!-- Placeholder for programs -->
+                                    <div id="programs_${facultyId}_${department.id}"></div> 
                                 </div>
                             `);
                         });
