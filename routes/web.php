@@ -10,6 +10,8 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\QuestionModules\QuestionModulesController;
 use App\Http\Controllers\QuestionModules\QuestionsController;
 use App\Http\Controllers\Questionnaires\QuestionnairesController;
+use App\Http\Controllers\Responder\ResponderHomeController;
+
 
 
 
@@ -69,3 +71,11 @@ use App\Http\Controllers\Admin\UserManagement\DepartmentsController;
 
 Route::get('/faculties/{id}/departments', [FacultiesController::class, 'getDepartments'])->name('faculties.departments');
 Route::get('/departments/{id}/programs', [DepartmentsController::class, 'getPrograms'])->name('departments.programs');
+
+
+Route::middleware(['auth'])->group(function () {
+    // Route for the Responder Home page (the index method)
+    Route::get('/responder/home', [ResponderHomeController::class, 'index'])->name('responder.home');
+    Route::get('/responder/questionnaire/{id}', [ResponderHomeController::class, 'show'])->name('responder.questionnaire.show');
+
+});

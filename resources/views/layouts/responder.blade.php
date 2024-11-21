@@ -33,7 +33,7 @@
          <!-- Start Leftbar -->
          <div class="leftbar">
             <!-- Start Sidebar -->
-            <x-student-sidebar />
+            <x-responder-sidebar />
             <!-- End Sidebar -->
          </div>
          <!-- End Leftbar -->

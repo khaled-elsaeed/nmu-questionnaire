@@ -62,6 +62,11 @@ class User extends Authenticatable
         return self::where('email', $email)->first();
     }
 
+    public function studentDetails()
+    {
+        return $this->hasOne(StudentDetail::class);
+    }
+
 
     
 }
