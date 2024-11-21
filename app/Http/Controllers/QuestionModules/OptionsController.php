@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Questionnaires;
+namespace App\Http\Controllers\QuestionModules;
 
 use Illuminate\Http\Request;
 
