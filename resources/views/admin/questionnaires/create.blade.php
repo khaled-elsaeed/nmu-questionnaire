@@ -360,34 +360,40 @@
 
 
              const facultyCard = `
-            <div class="card">
-                <div class="card-header" id="heading${facultyId}">
-                    <h2 class="mb-0">
-                        <button class="btn btn-link" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#collapse${facultyId}" aria-expanded="false"
-                            aria-controls="collapse${facultyId}">
-                            <i class="feather icon-award me-2"></i>${facultyData.facultyName}</button>
-                    </h2>
-                </div>
-                <div id="collapse${facultyId}" class="collapse" aria-labelledby="heading${facultyId}"
-                    data-parent="#accordionoutline">
-                    <div class="card-body">
-                        ${facultyData.departments.map(department => {
-                            return `
-                                <div class="department-card">
-                                    <h6>${department.departmentName}</h6>
-                                    <div class="department-programs" id="programs-${facultyId}-${department.departmentId}">
+    <div class="card">
+        <div class="card-header" id="heading${facultyId}">
+            <h2 class="mb-0">
+                <button class="btn btn-link" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapse${facultyId}" aria-expanded="false"
+                    aria-controls="collapse${facultyId}">
+                    <i class="feather icon-award me-2"></i>${facultyData.facultyName}
+                </button>
+            </h2>
+        </div>
+        <div id="collapse${facultyId}" class="collapse" aria-labelledby="heading${facultyId}"
+            data-parent="#accordionoutline">
+            <div class="card-body">
+                ${facultyData.departments.map(department => {
+                    return `
+                        <div class="department-card">
+                            <h6>${department.departmentName}</h6>
+                            <div class="department-programs" id="programs-${facultyId}-${department.departmentId}">
+                                ${department.programs.length > 0 ? `
+                                    <ul>
                                         ${department.programs.map(program => {
-                                            return `<p>${program.programName}</p>`;
+                                            return `<li>${program.programName}</li>`;
                                         }).join('')}
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
+                                    </ul>
+                                ` : `<p>No programs available</p>`}
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
             </div>
-        `;
+        </div>
+    </div>
+`;
+
 
 
              accordionContainer.append(facultyCard);
@@ -454,85 +460,98 @@
 
 
      $(document).on('change', '.department-option', function() {
-         const departmentId = this.value;
-         const facultyId = $('#faculty-dropdown').val();
-         const departmentSelectionDiv = $('#department-selection');
-         const programsParentSelectionDiv = $('#program-selection');
-         const programSelectionDiv = $('#program-selection-' + departmentId);
-         const programCheckboxesDiv = $('#program-checkboxes-' + departmentId);
+    const departmentId = this.value;
+    const facultyId = $('#faculty-dropdown').val();
+    const departmentSelectionDiv = $('#department-selection');
+    const programsParentSelectionDiv = $('#program-selection');
+    const programSelectionDiv = $('#program-selection-' + departmentId);
+    const programCheckboxesDiv = $('#program-checkboxes-' + departmentId);
 
+    const faculty = specificFaculties[facultyId];
+    let department = faculty?.departments.find(d => d.departmentId == departmentId);
 
-         if (this.checked) {
+    if (this.checked) {
+        if (!department) {
+            department = {
+                departmentId: departmentId,
+                departmentName: $(this).next('label').text(),
+                programs: [] 
+            };
+            faculty.departments.push(department);
+        }
 
-             if (!specificFaculties[facultyId]) {
-                 specificFaculties[facultyId] = {
-                     facultyId: facultyId,
-                     facultyName: $('#faculty-dropdown option:selected').text(),
-                     departments: []
-                 };
-             }
-
-             if (!specificFaculties[facultyId].departments.find(d => d.departmentId == departmentId)) {
-                 specificFaculties[facultyId].departments.push({
-                     departmentId: departmentId,
-                     departmentName: $(this).next('label').text(),
-                     programs: []
-                 });
-             }
-
-
-             const url = `{{ route('departments.programs', ':id') }}`.replace(':id', departmentId);
-             $.ajax({
-                 url: url,
-                 method: 'GET',
-                 success: function(data) {
-
-                     if (data.length > 0) {
-                         programCheckboxesDiv.empty();
-
-                         data.forEach(function(program) {
-                             programCheckboxesDiv.append(`
+        const url = `{{ route('departments.programs', ':id') }}`.replace(':id', departmentId);
+        $.ajax({
+            url: url,
+            method: 'GET',
+            success: function(data) {
+                programCheckboxesDiv.empty();
+                
+                if (data.length > 0) {
+                    data.forEach(function(program) {
+                        programCheckboxesDiv.append(`
                             <div class="form-check">
-                                <input class="form-check-input program-option" type="checkbox" name="department_${departmentId}_program[]" value="${program.id}" id="program_${program.id}">
+                                <input class="form-check-input program-option" type="checkbox" 
+                                    name="department_${departmentId}_program[]" value="${program.id}" 
+                                    id="program_${program.id}" data-program-id="${program.id}">
                                 <label class="form-check-label" for="program_${program.id}">${program.name}</label>
                             </div>
                         `);
-                         });
-                         programsParentSelectionDiv.show();
-                         programSelectionDiv.show();
-                     } else {
-                         programCheckboxesDiv.append('<p>No programs available.</p>');
-                     }
-                 },
-                 error: function() {
-                     swal('Error!', 'Unable to fetch programs. Please try again.', 'error');
-                 }
-             });
-         } else {
+                    });
 
-             specificFaculties[facultyId].departments = specificFaculties[facultyId].departments.filter(d => d.departmentId != departmentId);
+                    programsParentSelectionDiv.show();
+                    programSelectionDiv.show();
+                } else {
+                    programCheckboxesDiv.append('<p>No programs available.</p>');
+                }
+            },
+            error: function() {
+                swal('Error!', 'Unable to fetch programs. Please try again.', 'error');
+            }
+        });
+    } else {
+        if (department) {
+            faculty.departments = faculty.departments.filter(d => d.departmentId != departmentId);
+        }
 
+        programSelectionDiv.hide();
+        programCheckboxesDiv.empty();
+    }
+});
 
-             programSelectionDiv.hide();
-             programCheckboxesDiv.empty();
-         }
-     });
+$(document).on('change', '.program-option', function() {
+    const facultyId = $('#faculty-dropdown').val();
+    const departmentId = $(this).closest('.program-section').attr('id').split('-')[1];  
+    const programId = this.value;
 
+    const faculty = specificFaculties[facultyId];
+    const department = faculty?.departments.find(d => d.departmentId == departmentId);
 
-     $('#save-selections').on('click', function() {
-         console.log(specificFaculties);
-         populateAccordion();
+    if (this.checked) {
+        if (department && !department.programs.some(p => p.programId == programId)) {
+            const selectedProgram = { programId, programName: $(this).next('label').text() };
+            department.programs.push(selectedProgram);
+        }
+    } else {
+        if (department) {
+            department.programs = department.programs.filter(p => p.programId != programId);
+        }
+    }
+});
 
+$('#save-selections').on('click', function() {
+    console.log(specificFaculties);  
+    populateAccordion();
 
-         $('#faculty-dropdown').val('').prop('selected', true);
-         $('#department-checkboxes').empty();
-         $('#program-selection').empty();
-         $('#department-selection').hide();
-         $('#program-selection').hide();
+    $('#faculty-dropdown').val('').prop('selected', true);
+    $('#department-checkboxes').empty();
+    $('#program-selection').empty();
+    $('#department-selection').hide();
+    $('#program-selection').hide();
 
+    $('#addSpecificFacultyModal').modal('hide');
+});
 
-         $('#addSpecificFacultyModal').modal('hide');
-     });
 
 
 
