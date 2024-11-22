@@ -368,9 +368,16 @@
 
             for (const facultyId in specificFaculties) {
                 const facultyData = specificFaculties[facultyId];
+                const facultyCardContainer = `
+                <div id="facultyCardContainer" class="row d-flex flex-direction-column">
+                </div>
+                `;
+                accordionContainer.append(facultyCardContainer);
 
+                // what the hell
+                const facultyCardsContainer = $('#facultyCardContainer');
                 const facultyCard = `
-            <div class="card">
+            <div class="card col-md-4">
                 <div class="card-header" id="heading${facultyId}">
                     <h2 class="mb-0">
                         <button class="btn btn-link" type="button" data-bs-toggle="collapse"
@@ -404,7 +411,7 @@
             </div>
         `;
 
-                accordionContainer.append(facultyCard);
+                facultyCardsContainer.append(facultyCard);
             }
         }
 
