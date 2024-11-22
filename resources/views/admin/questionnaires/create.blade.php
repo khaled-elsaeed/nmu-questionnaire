@@ -347,6 +347,9 @@
          }
      });
 
+
+     // begin debugging here 
+
      let specificFaculties = {};
 
 
@@ -554,7 +557,7 @@ $('#save-selections').on('click', function() {
 
 
 
-
+    // stop here debugging
 
      $('#create-questionnaire-form').on('submit', function(e) {
          e.preventDefault();
