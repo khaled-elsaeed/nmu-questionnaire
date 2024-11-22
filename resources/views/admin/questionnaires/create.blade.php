@@ -363,39 +363,39 @@
 
 
              const facultyCard = `
-    <div class="card">
-        <div class="card-header" id="heading${facultyId}">
-            <h2 class="mb-0">
-                <button class="btn btn-link" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#collapse${facultyId}" aria-expanded="false"
-                    aria-controls="collapse${facultyId}">
-                    <i class="feather icon-award me-2"></i>${facultyData.facultyName}
-                </button>
-            </h2>
-        </div>
-        <div id="collapse${facultyId}" class="collapse" aria-labelledby="heading${facultyId}"
-            data-parent="#accordionoutline">
-            <div class="card-body">
-                ${facultyData.departments.map(department => {
-                    return `
-                        <div class="department-card">
-                            <h6>${department.departmentName}</h6>
-                            <div class="department-programs" id="programs-${facultyId}-${department.departmentId}">
-                                ${department.programs.length > 0 ? `
-                                    <ul>
-                                        ${department.programs.map(program => {
-                                            return `<li>${program.programName}</li>`;
-                                        }).join('')}
-                                    </ul>
-                                ` : `<p>No programs available</p>`}
-                            </div>
+                <div class="card">
+                    <div class="card-header" id="heading${facultyId}">
+                        <h2 class="mb-0">
+                            <button class="btn btn-link" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapse${facultyId}" aria-expanded="false"
+                                aria-controls="collapse${facultyId}">
+                                <i class="feather icon-award me-2"></i>${facultyData.facultyName}
+                            </button>
+                        </h2>
+                    </div>
+                    <div id="collapse${facultyId}" class="collapse" aria-labelledby="heading${facultyId}"
+                        data-parent="#accordionoutline">
+                        <div class="card-body">
+                            ${facultyData.departments.map(department => {
+                                return `
+                                    <div class="department-card">
+                                        <h6>${department.departmentName}</h6>
+                                        <div class="department-programs" id="programs-${facultyId}-${department.departmentId}">
+                                            ${department.programs.length > 0 ? `
+                                                <ul>
+                                                    ${department.programs.map(program => {
+                                                        return `<li>${program.programName}</li>`;
+                                                    }).join('')}
+                                                </ul>
+                                            ` : `<p>No programs available</p>`}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
-                    `;
-                }).join('')}
-            </div>
-        </div>
-    </div>
-`;
+                    </div>
+                </div>
+            `;
 
 
 
