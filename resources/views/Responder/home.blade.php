@@ -3,67 +3,76 @@
 @section('title', 'Available Questionnaires')
 
 @section('links')
+<style>
+    .card {
+        transition: all 0.3s ease-in-out;
+    }
 
+    .card:hover {
+        transform: scale(1.05);
+    }
+</style>
 @endsection
 
 @section('content')
-    <!-- Start row for available questionnaires -->
-    <div class="row">
-        <!-- Start col -->
-        <div class="col-lg-12">
+    <div class="container mt-4">
         <div class="row">
-    <!-- Available Questionnaire Cards -->
-    @foreach($questionnaires as $questionnaire)
-        <div class="col-lg-3 col-md-6 mb-4">
-            <div class="card m-b-30">
-                <div class="card-body">
-                    <!-- Title -->
-                    <h5 class="card-title">{{ $questionnaire->title }}</h5>
-                    
-                    <!-- Description -->
-                    <p class="card-text">{{ Str::limit($questionnaire->description, 100) }}</p>
-                    
-                    <!-- Dates and Status -->
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="font-13">
-                            Starts: {{ \Carbon\Carbon::parse($questionnaire->start_date)->format('d M, Y') }}
-                        </span>
-                        <span class="font-13">
-                            Ends: {{ \Carbon\Carbon::parse($questionnaire->end_date)->format('d M, Y') }}
-                        </span>
-                    </div>
+            @foreach($questionnaires as $questionnaire)
+                <div class="col-md-6 col-lg-4 col-xl-4 mb-4">
+                    <div class="card shadow-sm border-light rounded transition-all hover:shadow-lg hover:scale-105">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center p-3">
+                            <h5 class="card-title mb-0 font-weight-bold">{{ $questionnaire->title }}</h5>
+                            <i class="fa fa-question-circle"></i>
+                        </div>
 
-                    <!-- Status -->
-                    <div class="mt-2">
-                        @if($questionnaire->is_active)
-                            <span class="badge badge-success">Active</span>
-                        @else
-                            <span class="badge badge-secondary">Inactive</span>
-                        @endif
+                        <div class="card-body p-3">
+                            <p class="card-text font-weight-light">
+                                <i class="fa fa-hourglass-start"></i> 
+                                <strong>Starts:</strong> {{ \Carbon\Carbon::parse($questionnaire->start_date)->format('d M, Y') }}
+                            </p>
+                            <p class="card-text font-weight-light">
+                                <i class="fa fa-hourglass-end"></i> 
+                                <strong>Ends:</strong> {{ \Carbon\Carbon::parse($questionnaire->end_date)->format('d M, Y') }}
+                            </p>
+
+                            <div class="d-flex justify-content-end">
+                                <a href="{{ route('responder.questionnaire.show', $questionnaire->id) }}" class="btn btn-primary btn-sm">
+                                     Go To Questionnaire <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="card-footer bg-secondary text-white p-2">
+                            <small><i class="fa fa-clock-o"></i> Remaining: <span id="countdown-{{ $questionnaire->id }}"></span></small>
+                        </div>
                     </div>
                 </div>
-
-                <!-- Footer with action -->
-                <div class="card-footer text-center">
-                    <a href="{{ route('responder.questionnaire.show', $questionnaire->id) }}" class="btn btn-primary btn-sm">
-                        @if($questionnaire->is_completed ?? false)
-                            View Questionnaire
-                        @else
-                            Start Questionnaire
-                        @endif
-                    </a>
-                </div>
-            </div>
+            @endforeach
         </div>
-    @endforeach
-</div>
-
-        </div>
-        <!-- End col -->
     </div>
-    <!-- End row -->
 @endsection
 
 @section('scripts')
+    <script>
+        @foreach($questionnaires as $questionnaire)
+            let endDate = new Date("{{ \Carbon\Carbon::parse($questionnaire->end_date)->format('Y-m-d H:i:s') }}").getTime();
+            let countdownElement = document.getElementById('countdown-{{ $questionnaire->id }}');
 
+            let x = setInterval(function() {
+                let now = new Date().getTime();
+                let distance = endDate - now;
+
+                let days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+
+                countdownElement.innerHTML = `${days}d ${hours}h ${minutes}m`;
+
+                if (distance < 0) {
+                    clearInterval(x);
+                    countdownElement.innerHTML = "EXPIRED";
+                }
+            }, 1000);
+        @endforeach
+    </script>
 @endsection

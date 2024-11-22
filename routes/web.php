@@ -11,6 +11,8 @@ use App\Http\Controllers\QuestionModules\QuestionModulesController;
 use App\Http\Controllers\QuestionModules\QuestionsController;
 use App\Http\Controllers\Questionnaires\QuestionnairesController;
 use App\Http\Controllers\Responder\ResponderHomeController;
+use App\Http\Controllers\Responder\ResponderQuestionnaireController;
+
 
 
 
@@ -73,9 +75,12 @@ Route::get('/faculties/{id}/departments', [FacultiesController::class, 'getDepar
 Route::get('/departments/{id}/programs', [DepartmentsController::class, 'getPrograms'])->name('departments.programs');
 
 
-Route::middleware(['auth'])->group(function () {
-    // Route for the Responder Home page (the index method)
-    Route::get('/responder/home', [ResponderHomeController::class, 'index'])->name('responder.home');
-    Route::get('/responder/questionnaire/{id}', [ResponderHomeController::class, 'show'])->name('responder.questionnaire.show');
+Route::middleware(['auth'])->prefix('responder')->name('responder.')->group(function () {
+    // Responder Home Route
+    Route::get('/home', [ResponderHomeController::class, 'index'])->name('home');
 
+    // Responder Questionnaire Routes
+    Route::get('/questionnaire/{id}', [ResponderQuestionnaireController::class, 'show'])->name('questionnaire.show');
+    Route::post('/questionnaire/{id}/submit', [ResponderQuestionnaireController::class, 'submit'])->name('questionnaire.submit');
+    Route::get('/questionnaire/{id}/completed', [ResponderQuestionnaireController::class, 'completed'])->name('questionnaire.completed');
 });
