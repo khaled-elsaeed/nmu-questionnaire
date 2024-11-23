@@ -52,9 +52,11 @@ class ResponderQuestionnaireController extends Controller
                         'response_id' => $response->id,
                         'question_id' => $questionId,
                         'option_id' => $option->id,
-                        'answer_text' => null,
+                        'answer_text' => null, // Explicitly set to NULL
                     ]);
-                } elseif ($question->type == 'text_based') {
+                }
+                
+                elseif ($question->type == 'text_based') {
                     Answer::create([
                         'response_id' => $response->id,
                         'question_id' => $questionId,
@@ -76,9 +78,11 @@ class ResponderQuestionnaireController extends Controller
             return redirect()->route('responder.home')->with('success', 'Your responses have been submitted successfully!');
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Questionnaire Submission Error: ' . $e->getMessage());
             return redirect()->route('responder.questionnaire.show', $questionnaireId)
                 ->with('error', 'There was an issue submitting your responses. Please try again.');
         }
+        
     }
 
     public function history()

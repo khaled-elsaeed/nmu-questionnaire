@@ -125,12 +125,11 @@
 
                         @if($question->type === 'multiple_choice')
                             @foreach($question->options as $option)
-                                <div class="form-check" >
-                                <label for="option_{{ $option->id }}" class="form-check-label">
+                                <div class="form-check">
+                                    <input type="radio" name="answers[{{ $question->id }}]" id="option_{{ $option->id }}" value="{{ $option->id }}" class="form-check-input" required>
+                                    <label for="option_{{ $option->id }}" class="form-check-label">
                                         {{ $option->text }}
                                     </label>
-                                    <input type="radio" name="answers[{{ $question->id }}]" id="option_{{ $option->id }}" value="{{ $option->id }}" class="form-check-input" required>
-                                    
                                 </div>
                             @endforeach
                         @elseif($question->type === 'text_based')
@@ -161,25 +160,33 @@
 
 <script>
     document.querySelectorAll('#range-slider-own-numbers').forEach(function(slider) {
-        $(slider).ionRangeSlider({
-            type: "single",
-            min: 1,
-            max: 10,
-            from: 0,
-            step: 1,
-            grid: true
-        });
+    $(slider).ionRangeSlider({
+        type: "single",
+        min: 1,
+        max: 10,
+        from: 5,
+        step: 1,
+        grid: true,
+        skin: "round",
+        onFinish: function(data) {
+            $(slider).val(data.from); 
+        }
     });
+});
 
-    document.querySelectorAll('#range-slider-string-value').forEach(function(slider) {
-        $(slider).ionRangeSlider({
-            grid: true,
-            from: 0,
-            values: [
-                "zero", "one", "two", "three", "four", "five", 
-                "six", "seven", "eight", "nine", "ten"
-            ]
-        });
+document.querySelectorAll('#range-slider-string-value').forEach(function(slider) {
+    $(slider).ionRangeSlider({
+        grid: true,
+        from: 5,
+        values: [
+            "zero", "one", "two", "three", "four", "five",
+            "six", "seven", "eight", "nine", "ten"
+        ],
+        onFinish: function(data) {
+            $(slider).val(data.from_value); 
+        }
     });
+});
+
 </script>
 @endsection
