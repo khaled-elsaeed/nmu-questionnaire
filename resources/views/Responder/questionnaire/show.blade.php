@@ -134,12 +134,12 @@
                                 </div>
                             @endforeach
                         @elseif($question->type === 'text_based')
-                            <textarea name="answers[{{ $question->id }}]" rows="3" class="form-control" placeholder="Enter your answer here..." required></textarea>
+                            <textarea name="answers[{{ $question->id }}]" rows="3" class="form-control" placeholder="أدخل إجابتك هنا..." required></textarea>
                         @elseif($question->type === 'scaled_numerical')
-                            <label for="scale_{{ $question->id }}" class="form-label">Rate your response (1 to 10):</label>
+                            <label for="scale_{{ $question->id }}" class="form-label">اختر تقييماً(من 1 إلى 5):</label>
                             <input name="answers[{{ $question->id }}]" id="range-slider-own-numbers" data-question-id="{{ $question->id }}" required>
                         @elseif($question->type === 'scaled_text')
-                            <label for="scale_{{ $question->id }}" class="form-label">Rate your response (1 to 10):</label>
+                            <label for="scale_{{ $question->id }}" class="form-label">اختر تقييماً(من 1 إلى 5):</label>
                             <input id="range-slider-string-value" name="answers[{{ $question->id }}]" data-question-id="{{ $question->id }}">
                         @endif
                     </div>
@@ -164,7 +164,7 @@
         $(slider).ionRangeSlider({
             type: "single",
             min: 1,
-            max: 10,
+            max: 5,
             from: 0,
             step: 1,
             grid: true
@@ -176,8 +176,7 @@
             grid: true,
             from: 0,
             values: [
-                "zero", "one", "two", "three", "four", "five", 
-                "six", "seven", "eight", "nine", "ten"
+                "ضعيف", "مقبول", "جيد", "جيد جداً", "ممتاز"
             ]
         });
     });
