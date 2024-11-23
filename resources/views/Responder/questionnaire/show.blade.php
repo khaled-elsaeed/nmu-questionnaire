@@ -20,6 +20,8 @@
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         margin-bottom: 15px;
         padding: 20px;
+        direction: rtl;
+        text-align: right;
     }
 
     .question-card:hover {
@@ -82,6 +84,9 @@
         background: none !important;
         background-color: #8C2F39 !important;
     }
+    
+
+    
 </style>
 @endsection
 
