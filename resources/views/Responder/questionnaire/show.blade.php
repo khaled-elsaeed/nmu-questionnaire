@@ -84,6 +84,11 @@
         background: none !important;
         background-color: #8C2F39 !important;
     }
+
+    .form-check .form-check-input {
+        float: right !important;
+        margin-left:10px;
+    }
     
 
     
@@ -120,11 +125,12 @@
 
                         @if($question->type === 'multiple_choice')
                             @foreach($question->options as $option)
-                                <div class="form-check">
-                                    <input type="radio" name="answers[{{ $question->id }}]" id="option_{{ $option->id }}" value="{{ $option->id }}" class="form-check-input" required>
-                                    <label for="option_{{ $option->id }}" class="form-check-label">
+                                <div class="form-check" >
+                                <label for="option_{{ $option->id }}" class="form-check-label">
                                         {{ $option->text }}
                                     </label>
+                                    <input type="radio" name="answers[{{ $question->id }}]" id="option_{{ $option->id }}" value="{{ $option->id }}" class="form-check-input" required>
+                                    
                                 </div>
                             @endforeach
                         @elseif($question->type === 'text_based')
