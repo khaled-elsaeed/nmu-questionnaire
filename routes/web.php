@@ -78,6 +78,7 @@ Route::get('/departments/{id}/programs', [DepartmentsController::class, 'getProg
 Route::middleware(['auth'])->prefix('responder')->name('responder.')->group(function () {
     // Responder Home Route
     Route::get('/home', [ResponderHomeController::class, 'index'])->name('home');
+    Route::get('/questionnaire/history', [ResponderQuestionnaireController::class, 'history'])->name('questionnaire.history');
 
     // Responder Questionnaire Routes
     Route::get('/questionnaire/{id}', [ResponderQuestionnaireController::class, 'show'])->name('questionnaire.show');

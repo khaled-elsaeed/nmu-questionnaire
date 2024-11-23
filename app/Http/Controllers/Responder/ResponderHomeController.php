@@ -6,102 +6,65 @@ use App\Models\Questionnaire;
 use App\Models\StudentDetail;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Log;
 
 class ResponderHomeController extends Controller
 {
     public function index()
     {
         $user = auth()->user();
-        $role = $user->getRoleNames()->first(); 
+        $role = $user->getRoleNames()->first();
 
-        Log::info("Fetching available questionnaires for user: {$user->id}, Role: {$role}");
-
-        $questionnaires = $role === 'student'
-            ? $this->getAvailableQuestionnairesForStudent($user)
-            : collect();
-
-        $this->logQuestionnairesResult($user, $questionnaires);
+        $questionnaires = $role === 'student' ? $this->getQuestionnairesForStudent($user) : collect();
 
         return view('responder.home', compact('questionnaires'));
     }
 
-    
-    private function getAvailableQuestionnairesForStudent($user)
+    private function getQuestionnairesForStudent($user)
     {
-        // Get student details
         $studentDetails = $this->getStudentDetails($user);
 
         if (!$studentDetails) {
-            Log::warning("No student details found for user: {$user->id}. Returning no questionnaires.");
             return collect();
         }
 
-        // Query questionnaires based on student details
-        return Questionnaire::whereIn('id', function ($query) use ($studentDetails) {
-            $query->select('questionnaire_id')
-                ->from('questionnaire_targets')
-                ->where('role_name', 'student') 
-
-                // Match faculty
-                ->where(function ($subQuery) use ($studentDetails) {
-                    $this->addMatchCondition($subQuery, 'faculty_id', $studentDetails->faculty_id);
-                })
-
-                // Match department
-                ->where(function ($subQuery) use ($studentDetails) {
-                    $this->addMatchCondition($subQuery, 'dept_id', $studentDetails->department_id);
-                })
-
-                // Match program
-                ->where(function ($subQuery) use ($studentDetails) {
-                    $this->addMatchCondition($subQuery, 'program_id', $studentDetails->program_id);
-                })
-
-                // Match scope type
-                ->where(function ($subQuery) {
-                    Log::info("Checking scope type for questionnaire.");
-                    $subQuery->where('scope_type', 'Global')
-                             ->orWhere('scope_type', 'Local');
-                });
-        })->get();
+        return $this->getTargetedQuestionnaires($studentDetails, $user->id);
     }
 
-    
     private function getStudentDetails($user)
     {
-        $studentDetails = StudentDetail::where('user_id', $user->id)->first();
-
-        if ($studentDetails) {
-            Log::info("Student details found for user: {$user->id}, Faculty ID: {$studentDetails->faculty_id}, Department ID: {$studentDetails->department_id}, Program ID: {$studentDetails->program_id}");
-        } else {
-            Log::warning("No student details found for user: {$user->id}");
-        }
-
-        return $studentDetails;
+        return StudentDetail::where('user_id', $user->id)->first();
     }
 
-    
-    private function addMatchCondition($query, string $attribute, $value)
+    private function getTargetedQuestionnaires($studentDetails, $userId)
     {
-        $query->where(function ($subQuery) use ($attribute, $value) {
-            if ($value) {
-                Log::info("Filtering by {$attribute}: {$value}");
-                $subQuery->where($attribute, $value);
-            } else {
-                Log::info("Skipping {$attribute} filtering (NULL or not applicable).");
-                $subQuery->whereNull($attribute);
-            }
-        });
-    }
-
-    
-    private function logQuestionnairesResult($user, $questionnaires)
-    {
-        if ($questionnaires->isEmpty()) {
-            Log::warning("No questionnaires found for user: {$user->id}.");
-        } else {
-            Log::info("Fetched questionnaires for user: {$user->id}. IDs: " . $questionnaires->pluck('id')->join(', '));
-        }
+        return Questionnaire::whereIn('id', function ($query) use ($studentDetails) {
+                $query->select('questionnaire_id')
+                    ->from('questionnaire_targets')
+                    ->where('role_name', 'student')
+                    ->where(function ($subQuery) use ($studentDetails) {
+                        $subQuery->orWhere(function ($q) use ($studentDetails) {
+                            $q->where('scope_type', 'Local')
+                                ->where(function ($filter) use ($studentDetails) {
+                                    $filter->where('faculty_id', $studentDetails->faculty_id)
+                                           ->orWhereNull('faculty_id');
+                                })
+                                ->where(function ($filter) use ($studentDetails) {
+                                    $filter->where('dept_id', $studentDetails->department_id)
+                                           ->orWhereNull('dept_id');
+                                })
+                                ->where(function ($filter) use ($studentDetails) {
+                                    $filter->where('program_id', $studentDetails->program_id)
+                                           ->orWhereNull('program_id');
+                                });
+                        });
+                        $subQuery->orWhere('scope_type', 'Global');
+                    });
+            })
+            ->whereDoesntHave('responses', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->where('end_date', '>', now()) 
+            ->orderBy('start_date', 'desc') 
+            ->get();
     }
 }

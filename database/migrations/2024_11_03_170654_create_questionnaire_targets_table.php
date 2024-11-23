@@ -17,9 +17,10 @@ return new class extends Migration
             $table->foreignId('dept_id')->nullable()->constrained('departments')->onDelete('cascade');
             $table->foreignId('program_id')->nullable()->constrained('programs')->onDelete('cascade');
             $table->foreignId('faculty_id')->nullable()->constrained('faculties')->onDelete('cascade');
+            $table->foreignId('course_id')->nullable()->constrained('courses')->onDelete('cascade'); // New field for course_id
             $table->enum('role_name', ['student', 'staff', 'teaching_assistant'])->notNullable();
-            $table->integer('level')->notNullable();
-            $table->enum('scope_type', ['Local', 'Global'])->notNullable();
+            $table->integer('level')->nullable(); // Made level nullable
+            $table->enum('scope_type', ['local', 'global'])->notNullable();
             $table->timestamps();
         });
     }

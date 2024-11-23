@@ -127,7 +127,7 @@
                         @elseif($question->type === 'scaled_numerical')
                             <label for="scale_{{ $question->id }}" class="form-label">Rate your response (1 to 10):</label>
                             <input name="answers[{{ $question->id }}]" id="range-slider-own-numbers" data-question-id="{{ $question->id }}" required>
-                        @elseif($question->type === 'scaled_descriptors')
+                        @elseif($question->type === 'scaled_text')
                             <label for="scale_{{ $question->id }}" class="form-label">Rate your response (1 to 10):</label>
                             <input id="range-slider-string-value" name="answers[{{ $question->id }}]" data-question-id="{{ $question->id }}">
                         @endif

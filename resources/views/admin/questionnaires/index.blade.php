@@ -23,7 +23,7 @@
                 @foreach ($questionnaires as $questionnaire)
                     <div class="questionnaire-block mb-4 card border shadow-sm">
                         <div class="card-header bg-primary">
-                            <h6 class="mb-0 text-white">{{ $questionnaire->name }}</h6>
+                            <h6 class="mb-0 text-white">{{ $questionnaire->title }}</h6>
                         </div>
                         <div class="card-body">
                             <p><strong>Description:</strong> {{ $questionnaire->description }}</p>

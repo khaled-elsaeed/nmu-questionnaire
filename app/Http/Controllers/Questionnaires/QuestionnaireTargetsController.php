@@ -19,9 +19,8 @@ class QuestionnaireTargetsController extends Controller
             'dept_id' => 'nullable|exists:departments,id',
             'program_id' => 'nullable|exists:programs,id',
             'faculty_id' => 'nullable|exists:faculties,id',
-            'role_name' => 'required|string|in:Admin,Student,Teacher',
-            'level' => 'required|integer',
-            'scope_type' => 'required|string|in:Local,Global'
+            'role_name' => 'required|string|in:admin,student,teacher',
+            'scope_type' => 'required|string|in:local,global'
         ]);
         return QuestionnaireTarget::create($request->all());
     }
