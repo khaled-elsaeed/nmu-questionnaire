@@ -169,7 +169,7 @@
             grid: true
         });
     });
-});
+
 
     document.querySelectorAll('#range-slider-string-value').forEach(function(slider) {
         $(slider).ionRangeSlider({
@@ -180,7 +180,7 @@
             ]
         });
     });
-});
+
 
 </script>
 @endsection
