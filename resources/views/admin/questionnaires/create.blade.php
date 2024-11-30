@@ -161,8 +161,8 @@
                         </div>
 
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="faculty_option" value="all_faculty" id="all_faculty">
-                            <label class="form-check-label" for="all_faculty">All Courses</label>
+                            <input class="form-check-input" type="radio" name="faculty_option" value="all_courses" id="all_courses">
+                            <label class="form-check-label" for="all_courses">All Courses</label>
                             </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="faculty_option" value="specific_course" id="specific_course">
@@ -779,7 +779,7 @@ function buildStudentAudience() {
         role_name: 'student',
         scope_type: '',
         faculties: [],
-        courses: []
+        courses: [],
     };
 
     // Check if faculty options are visible
@@ -807,6 +807,21 @@ function buildStudentAudience() {
                         name: prog.programName
                     }))
                 }))
+            }));
+        } else if (facultyOption == 'all_courses'){
+            // For global scope (all faculties)
+            audienceData.scope_type = 'global';
+            audienceData.courses.push({
+                id: 'all',
+            });
+        }
+
+        else if (facultyOption == 'specific_course'){
+            // For global scope (all faculties)
+            audienceData.scope_type = 'local';
+            audienceData.courses = Object.values(specificCourses).map(course => ({
+                id: course.courseId,
+                name: course.courseName,
             }));
         }
     }
