@@ -30,14 +30,11 @@ class QuestionnairesController extends Controller
     public function create()
 {
     try {
-        // Retrieve faculties and modules
-        $faculties = Faculty::pluck('name', 'id'); // Returns an array: ['id' => 'name']
-        $modules = QuestionModule::pluck('name', 'id'); // Returns an array: ['id' => 'name']
+        $faculties = Faculty::pluck('name', 'id'); 
+        $modules = QuestionModule::pluck('name', 'id'); 
 
-        // Retrieve all courses
-        $courses = Course::all(); // Fetch all course data
+        $courses = Course::all(); 
 
-        // Pass data to the view
         return view('admin.questionnaires.create', compact('modules', 'faculties', 'courses'));
     } catch (\Exception $exception) {
         Log::error('Failed to retrieve data for questionnaire creation: ' . $exception->getMessage());
@@ -50,10 +47,9 @@ public function store(Request $request)
 {
     $request->validate([
         'title' => 'required|string',
-        'description' => 'required|string',
+        'description' => 'string',
         'start_date' => 'required|date',
         'end_date' => 'required|date',
-        'is_active' => 'required|boolean',
         'questions' => 'required|array|min:1',
         'questions.*' => 'exists:questions,id',
         'audience_data' => 'required|string',
@@ -64,7 +60,7 @@ public function store(Request $request)
     try {
         \DB::transaction(function () use ($request) {
             // Create the questionnaire
-            $questionnaire = Questionnaire::create($request->only(['title', 'description', 'start_date', 'end_date', 'is_active', 'module_id']));
+            $questionnaire = Questionnaire::create($request->only(['title', 'description', 'start_date', 'end_date', 'module_id']));
             $questionnaire->questions()->attach($request->questions, ['display_order' => 0, 'is_mandatory' => false]);
 
             // Decode audience data
@@ -286,21 +282,148 @@ public function createQuestionnaireForCourse($course, $questionnaireId, $roleNam
     
     
 
-    public function show($id)
+public function show($id)
+{
+    return Questionnaire::findOrFail($id);
+}
+
+public function update(Request $request, $id)
+{
+    $questionnaire = Questionnaire::findOrFail($id);
+    $questionnaire->update($request->all());
+    return $questionnaire;
+}
+
+public function destroy($id)
+{
+    Questionnaire::destroy($id);
+    return response()->noContent();
+}
+
+
+
+public function results()
     {
-        return Questionnaire::findOrFail($id);
+        try {
+            $questionnaires = Questionnaire::get();
+            return view('admin.questionnaires.result', compact('questionnaires'));
+        } catch (\Exception $exception) {
+            Log::error('Failed to retrieve questionnaires in index method: ' . $exception->getMessage());
+            return response()->json(['success' => false, 'message' => 'Unable to retrieve questionnaires.'], 500);
+        }
     }
 
-    public function update(Request $request, $id)
-    {
-        $questionnaire = Questionnaire::findOrFail($id);
-        $questionnaire->update($request->all());
-        return $questionnaire;
-    }
 
-    public function destroy($id)
+    public function showStats($id)
     {
-        Questionnaire::destroy($id);
-        return response()->noContent();
+        $questionnaire = Questionnaire::with(['questions.answers', 'questions.options'])->findOrFail($id);
+    
+        // Initialize stats array
+        $stats = [
+            'total_responses' => 0,
+            'text_based_responses' => 0,
+            'scaled_text_avg' => 0,
+            'scaled_numerical_avg' => 0,
+            'scale_avg' => 0,
+            'text_based_answers' => [],
+            'scaled_text_answers' => [],
+            'scaled_numerical_answers' => [],
+            'scale_answers' => [],
+            'scaled_text_counts' => [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0], // Breakdown for scaled_text counts
+            'scaled_numerical_counts' => [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0], // Breakdown for numerical counts
+        ];
+    
+        $question_stats = []; // Array to hold stats for each question
+    
+        foreach ($questionnaire->questions as $question) {
+            $responses = $question->answers->groupBy('response.user_id');
+            $question_stat = [
+                'total_responses' => $responses->count(),
+                'text_based_responses' => 0,
+                'scaled_text_avg' => 0,
+                'scaled_numerical_avg' => 0,
+                'scale_avg' => 0,
+                'text_based_answers' => [],
+                'scaled_text_answers' => [],
+                'scaled_numerical_answers' => [],
+                'scale_answers' => [],
+                'scaled_text_counts' => [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0], 
+                'scaled_numerical_counts' => [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0], 
+            ];
+    
+            foreach ($responses as $response) {
+                switch ($question->type) {
+                    case 'text_based':
+                        $question_stat['text_based_responses']++;
+                        $question_stat['text_based_answers'][] = $response->pluck('answer_text')->first();
+                        break;
+    
+                    case 'scaled_text':
+                        $answers = $response->pluck('answer_text')->first();
+                        $question_stat['scaled_text_answers'][] = $answers;
+                        $text_scale = [
+                            'Bad' => 1, 'سيء' => 1,
+                            'Fair' => 2, 'مقبول' => 2,
+                            'Good' => 3, 'جيد' => 3,
+                            'Very Good' => 4, 'جيد جدا' => 4,
+                            'Excellent' => 5, 'ممتاز' => 5
+                        ];
+                        $numericAnswer = $text_scale[$answers] ?? 0;
+                        $question_stat['scaled_text_counts'][$numericAnswer]++;
+                        break;
+    
+                    case 'scaled_numerical':
+                        $answers = $response->pluck('answer_text')->first();
+                        $question_stat['scaled_numerical_answers'][] = (int) $answers;
+                        $numericAnswer = (int) $answers;
+                        $question_stat['scaled_numerical_counts'][$numericAnswer]++;
+                        break;
+    
+                    case 'scale':
+                        $answers = $response->pluck('answer_text')->first();
+                        $question_stat['scale_answers'][] = (int) $answers;
+                        break;
+                }
+            }
+    
+            if (!empty($question_stat['scaled_numerical_answers'])) {
+                $question_stat['scaled_numerical_avg'] = array_sum($question_stat['scaled_numerical_answers']) / count($question_stat['scaled_numerical_answers']);
+            }
+    
+            if (!empty($question_stat['scale_answers'])) {
+                $question_stat['scale_avg'] = array_sum($question_stat['scale_answers']) / count($question_stat['scale_answers']);
+            }
+    
+            if (!empty($question_stat['scaled_text_answers'])) {
+                $text_scale = ['Bad' => 1, 'سيء' => 1, 'Fair' => 2, 'مقبول' => 2, 'Good' => 3, 'جيد' => 3, 'Very Good' => 4, 'جيد جدا' => 4, 'Excellent' => 5, 'ممتاز' => 5];
+                $numericAnswers = array_map(function ($answer) use ($text_scale) {
+                    return $text_scale[$answer] ?? 0;
+                }, $question_stat['scaled_text_answers']);
+                $question_stat['scaled_text_avg'] = array_sum($numericAnswers) / count($numericAnswers);
+            }
+    
+            $question_stats[] = [
+                'question' => $question->text,
+                'stats' => $question_stat
+            ];
+    
+            // Update global stats
+            $stats['total_responses'] += $question_stat['total_responses'];
+            $stats['text_based_responses'] += $question_stat['text_based_responses'];
+            $stats['scaled_text_avg'] += $question_stat['scaled_text_avg'];
+            $stats['scaled_numerical_avg'] += $question_stat['scaled_numerical_avg'];
+            $stats['scale_avg'] += $question_stat['scale_avg'];
+        }
+    
+        // Return stats to the view
+        return view('admin.questionnaires.stats', compact('questionnaire', 'stats', 'question_stats'));
     }
+    
+    
+
+    
+    
+
+
+
 }

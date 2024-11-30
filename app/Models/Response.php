@@ -14,21 +14,24 @@ class Response extends Model
         'user_id',
     ];
 
-    /**
-     * Get the answers associated with this response.
-     */
-    public function answers()
+     // A response belongs to a questionnaire
+     public function questionnaire()
+     {
+         return $this->belongsTo(Questionnaire::class);
+     }
+ 
+     // A response can have many answers
+     public function answers()
+     {
+         return $this->hasMany(Answer::class);
+     }
+
+    // A response belongs to a question
+    public function question()
     {
-        return $this->hasMany(Answer::class);
+        return $this->belongsTo(Question::class);
     }
 
-    /**
-     * Get the questionnaire associated with this response.
-     */
-    public function questionnaire()
-    {
-        return $this->belongsTo(Questionnaire::class);
-    }
 
     /**
      * Get the user who submitted the response.

@@ -16,18 +16,22 @@ class Answer extends Model
         'answer_text',
     ];
 
-    public function response()
-    {
-        return $this->belongsTo(Response::class);
-    }
 
-    public function question()
-    {
-        return $this->belongsTo(Question::class);
-    }
-
-    public function option()
-    {
-        return $this->belongsTo(Option::class);
-    }
+     // An answer belongs to a response
+     public function response()
+     {
+         return $this->belongsTo(Response::class);
+     }
+ 
+     // An answer belongs to a question
+     public function question()
+     {
+         return $this->belongsTo(Question::class);
+     }
+ 
+     // An answer can belong to an option (if it's a multiple choice answer)
+     public function option()
+     {
+         return $this->belongsTo(Option::class);
+     }
 }

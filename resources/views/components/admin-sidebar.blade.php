@@ -32,7 +32,7 @@
                 <ul class="vertical-submenu">
                     <li><a href="{{ route('admin.questionnaires.index') }}">View Questionnaires</a></li>
                     <li><a href="{{ route('admin.questionnaires.create') }}">Create Questionnaire</a></li>
-                    <li><a href="#">View Results</a></li>
+                    <li><a href="{{ route('admin.questionnaires.results') }}">View Results</a></li>
                 </ul>
             </li>
 
@@ -67,46 +67,6 @@
     </ul>
 </li>
 
-
-
-
-
-            <!-- User Management Link -->
-            <li>
-                <a href="#">
-                    <img src="{{ asset('images/svg-icon/components.svg') }}" class="img-fluid" alt="users">
-                    <span>User Management</span>
-                    <i class="feather icon-chevron-right pull-right"></i>
-                </a>
-                <ul class="vertical-submenu">
-                    <li><a href="#">View Users</a></li>
-                    <li><a href="#">Roles & Permissions</a></li>
-                </ul>
-            </li>
-
-            <!-- Profile Link -->
-            <li>
-                <a href="#">
-                    <img src="{{ asset('images/svg-icon/user.svg') }}" class="img-fluid" alt="profile">
-                    <span>Profile</span>
-                </a>
-            </li>
-
-            <!-- Settings Link -->
-            <li>
-                <a href="#">
-                    <img src="{{ asset('images/svg-icon/settings.svg') }}" class="img-fluid" alt="settings">
-                    <span>Settings</span>
-                </a>
-            </li>
-
-            <!-- Logout Link -->
-            <li>
-                <a href="#" onclick="logout()">
-                    <img src="{{ asset('images/svg-icon/logout.svg') }}" class="img-fluid" id="sidebar-logout-btn" alt="logout">
-                    <span>Logout</span>
-                </a>
-            </li>
         </ul>
     </div>
     <!-- End Navigationbar -->
