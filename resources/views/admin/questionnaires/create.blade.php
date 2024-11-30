@@ -282,14 +282,13 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label for="course-dropdown">Select Course</label>
-                    <select class="form-select" id="course-dropdown" name="faculty">
-                        <option value="" selected disabled>Select a Course</option>
-                        <option value="cs101">CS101 - Introduction to Programming</option>
-                        <option value="cs102">CS102 - Data Structures</option>
-                        <option value="cs201">CS201 - Algorithms</option>
-                        <option value="cs301">CS301 - Software Engineering</option>
-                        <option value="cs401">CS401 - Artificial Intelligence</option>
-                    </select>
+                    <select class="form-select" id="course-dropdown" name="course">
+    <option value="" selected disabled>Select a Course</option>
+    @foreach($courses as $course)
+        <option value="{{ $course->id }}">{{ $course->code }} - {{ $course->name }}</option>
+    @endforeach
+</select>
+
                 </div>
             </div>
             <div class="modal-footer">

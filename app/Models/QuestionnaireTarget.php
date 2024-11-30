@@ -11,6 +11,7 @@ class QuestionnaireTarget extends Model
         'dept_id',
         'program_id',
         'faculty_id',
+        'course_detail_id',
         'role_name',
         'level',
         'scope_type',
