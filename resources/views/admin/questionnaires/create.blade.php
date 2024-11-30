@@ -689,11 +689,10 @@ $('#course-dropdown').on('change', function() {
 });
 
 $('#save-specific-course-selections').on('click', function() {
-        console.log(specificFaculties);
+        console.log(specificCourses);
         populateCourseAccordion();
-
         $('#addSpecificCourseModal').modal('hide');
-    });
+});
 
 
     function handleQuestionnaireSubmit(e) {
