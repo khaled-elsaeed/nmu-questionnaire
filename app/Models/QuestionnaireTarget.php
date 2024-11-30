@@ -16,8 +16,30 @@ class QuestionnaireTarget extends Model
         'scope_type',
     ];
 
-    public function questionnaire()
-    {
-        return $this->belongsTo(Questionnaire::class);
-    }
+  // QuestionnaireTarget.php
+public function questionnaire()
+{
+    return $this->belongsTo(Questionnaire::class);
+}
+
+public function courseDetail()
+{
+    return $this->belongsTo(CourseDetail::class);
+}
+
+public function department()
+{
+    return $this->belongsTo(Department::class);
+}
+
+public function program()
+{
+    return $this->belongsTo(Program::class);
+}
+
+public function faculty()
+{
+    return $this->belongsTo(Faculty::class);
+}
+
 }

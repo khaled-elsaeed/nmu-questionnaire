@@ -14,8 +14,25 @@ class StudentDetail extends Model
         'level',
     ];
 
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+    // StudentDetail.php
+public function user()
+{
+    return $this->belongsTo(User::class);
+}
+
+public function faculty()
+{
+    return $this->belongsTo(Faculty::class);
+}
+
+public function department()
+{
+    return $this->belongsTo(Department::class);
+}
+
+public function program()
+{
+    return $this->belongsTo(Program::class);
+}
+
 }

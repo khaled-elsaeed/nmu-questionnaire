@@ -151,14 +151,22 @@
                         <label class="form-check-label" for="students">Students</label>
                     </div>
                     <div id="faculty-options" style="display: none; padding-left: 1.5rem;">
+                    <div class="form-check">
+                            <input class="form-check-input" type="radio" name="faculty_option" value="specific_faculty" id="specific_faculty">
+                            <label class="form-check-label" for="specific_faculty"> Faculty</label>
+                        </div>
                         <div class="form-check">
+                            <input class="form-check-input" type="radio" name="faculty_option" value="specific_faculty" id="specific_faculty">
+                            <label class="form-check-label" for="specific_faculty"> Courses</label>
+                        </div>
+                        <!-- <div class="form-check">
                             <input class="form-check-input" type="radio" name="faculty_option" value="all_faculty" id="all_faculty">
                             <label class="form-check-label" for="all_faculty">All Faculty</label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="faculty_option" value="specific_faculty" id="specific_faculty">
                             <label class="form-check-label" for="specific_faculty">Specific Faculty</label>
-                        </div>
+                        </div> -->
                         <div id="specific-faculty-options" style="display: none; padding-left: 2rem;">
                             <div id="accordionoutline" class="accordion">
 

@@ -21,13 +21,22 @@ class Questionnaire extends Model
                     ->withTimestamps();
     }
 
-    public function targets()
-    {
-        return $this->hasMany(QuestionnaireTarget::class);
-    }
+// Questionnaire.php
+public function questionnaireTargets()
+{
+    return $this->hasMany(QuestionnaireTarget::class);
+}
 
-    public function responses()
-    {
-        return $this->hasMany(Response::class);
-    }
+public function courseDetails()
+{
+    return $this->belongsToMany(CourseDetail::class, 'questionnaire_targets');
+}
+
+
+public function responses()
+{
+    return $this->hasMany(Response::class);
+}
+
+
 }
