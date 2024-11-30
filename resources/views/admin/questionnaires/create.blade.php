@@ -248,7 +248,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="save-selections">Save Selections</button>
+                <button type="button" class="btn btn-primary" id="save-specific-faculty-selections">Save Selections</button>
             </div>
         </div>
     </div>
@@ -290,7 +290,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="add-course">Add</button>
+                <button type="button" class="btn btn-primary" id="save-specific-course-selections">Add</button>
             </div>
         </div>
     </div>
@@ -429,7 +429,7 @@
     let specificFaculties = {};
 
 
-    function populateAccordion() {
+    function populateFacultyAccordion() {
         const accordionContainer = $('#accordionoutline');
         accordionContainer.empty();
 
@@ -623,9 +623,9 @@
     });
 
 //---//
-    $('#save-selections').on('click', function() {
+    $('#save-specific-faculty-selections').on('click', function() {
         console.log(specificFaculties);
-        populateAccordion();
+        populateFacultyAccordion();
 
         $('#faculty-dropdown').val('').prop('selected', true);
         $('#department-checkboxes').empty();
@@ -636,6 +636,60 @@
         $('#addSpecificFacultyModal').modal('hide');
     });
 //---//
+
+
+
+
+let specificCourses = {};
+
+
+function populateCourseAccordion() {
+    const accordionContainer = $('#accordionoutline');
+    accordionContainer.empty();
+
+    for (const courseId in specificCourses) {
+        const courseData = specificCourses[courseId];
+
+        const courseCard = `
+        <div class="card">
+            <div class="card-header" id="heading${courseId}">
+                <h2 class="mb-0">
+                    <button class="btn btn-link" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#collapse${courseId}" aria-expanded="false"
+                        aria-controls="collapse${courseId}">
+                        <i class="feather icon-award me-2"></i>${courseData.courseName}
+                    </button>
+                </h2>
+            </div>
+            
+        </div>
+    `;
+
+        accordionContainer.append(courseCard);
+    }
+}
+
+
+
+$('#course-dropdown').on('change', function() {
+    const courseId = $(this).val();
+
+
+    if (!specificCourses[courseId]) {
+        specificCourses[courseId] = {
+            courseId: courseId,
+            courseName: $(this).find('option:selected').text(),
+        };
+    }
+
+});
+
+$('#save-specific-course-selections').on('click', function() {
+        console.log(specificFaculties);
+        populateCourseAccordion();
+
+        $('#addSpecificCourseModal').modal('hide');
+    });
 
 
     function handleQuestionnaireSubmit(e) {
