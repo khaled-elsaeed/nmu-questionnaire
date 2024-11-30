@@ -231,9 +231,9 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="course-dropdown">Select Faculty</label>
-                    <select class="form-select" id="course-dropdown" name="course">
-                        <option value="" selected disabled>Select a Course</option>
+                    <label for="faculty-dropdown">Select Faculty</label>
+                    <select class="form-select" id="faculty-dropdown" name="course">
+                        <option value="" selected disabled>Select a faculty</option>
                         @foreach($faculties as $id => $name)
                         <option value="{{ $id }}">{{ $name }}</option>
                         @endforeach
@@ -677,7 +677,7 @@ function populateCourseAccordion() {
 
 $('#course-dropdown').on('change', function() {
     const courseId = $(this).val();
-
+    console.log(courseId);
 
     if (!specificCourses[courseId]) {
         specificCourses[courseId] = {
