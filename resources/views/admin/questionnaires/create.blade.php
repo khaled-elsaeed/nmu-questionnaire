@@ -152,21 +152,22 @@
                     </div>
                     <div id="faculty-options" style="display: none; padding-left: 1.5rem;">
                     <div class="form-check">
-                            <input class="form-check-input" type="radio" name="faculty_option" value="specific_faculty" id="specific_faculty">
-                            <label class="form-check-label" for="specific_faculty"> Faculty</label>
+                        <input class="form-check-input" type="radio" name="faculty_option" value="all_faculty" id="all_faculty">
+                        <label class="form-check-label" for="all_faculty">All Faculties</label>
                         </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="faculty_option" value="specific_faculty" id="specific_faculty">
-                            <label class="form-check-label" for="specific_faculty"> Courses</label>
-                        </div>
-                        <!-- <div class="form-check">
-                            <input class="form-check-input" type="radio" name="faculty_option" value="all_faculty" id="all_faculty">
-                            <label class="form-check-label" for="all_faculty">All Faculty</label>
-                        </div>
-                        <div class="form-check">
+                    <div class="form-check">
                             <input class="form-check-input" type="radio" name="faculty_option" value="specific_faculty" id="specific_faculty">
                             <label class="form-check-label" for="specific_faculty">Specific Faculty</label>
-                        </div> -->
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="faculty_option" value="all_faculty" id="all_faculty">
+                            <label class="form-check-label" for="all_faculty">All Courses</label>
+                            </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="faculty_option" value="specific_course" id="specific_course">
+                            <label class="form-check-label" for="specific_course">Specific Course</label>
+                        </div>
                         <div id="specific-faculty-options" style="display: none; padding-left: 2rem;">
                             <div id="accordionoutline" class="accordion">
 
@@ -174,7 +175,19 @@
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSpecificFacultyModal">
                                 Add Faculty
                             </button>
+
                         </div>
+                        <div id="specific-course-options" style="display: none; padding-left: 2rem;">
+                            <div id="accordionoutline" class="accordion">
+
+                            </div>
+
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSpecificCourseModal">
+                                Add Course
+                            </button>
+
+                        </div>
+                        
                     </div>
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" name="audience[]" value="teaching_assistant" id="teaching_assistant">
@@ -216,9 +229,9 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="faculty-dropdown">Select Faculty</label>
-                    <select class="form-select" id="faculty-dropdown" name="faculty">
-                        <option value="" selected disabled>Select a Faculty</option>
+                    <label for="course-dropdown">Select Faculty</label>
+                    <select class="form-select" id="course-dropdown" name="course">
+                        <option value="" selected disabled>Select a Course</option>
                         @foreach($faculties as $id => $name)
                         <option value="{{ $id }}">{{ $name }}</option>
                         @endforeach
@@ -236,6 +249,48 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" id="save-selections">Save Selections</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="optionsModal" tabindex="-1" role="dialog" aria-labelledby="optionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="optionsModalLabel">Question Options</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="options-list" class="options-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addSpecificCourseModal" tabindex="-1" aria-labelledby="addSpecificCourseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addSpecificCourseModalLabel">Select Course</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="faculty-dropdown">Select Course</label>
+                    <select class="form-select" id="faculty-dropdown" name="faculty">
+                        <option value="" selected disabled>Select a Course</option>
+                        @foreach($faculties as $id => $name)
+                        <option value="{{ $id }}">{{ $name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="add-course">Add</button>
             </div>
         </div>
     </div>
@@ -357,16 +412,20 @@
 
     $('input[name="faculty_option"]').on('change', function() {
         $('#specific-faculty-options').toggle(this.value === 'specific_faculty');
+        $('#specific-course-options').toggle(this.value === 'specific_course');
+
 
         if (this.value === 'all_faculty') {
             $('.specific-faculty-option, .faculty-department-option').prop('checked', false).prop('disabled', true);
             $('#specific-faculty-options').find('input[type="checkbox"]').prop('checked', false);
-        } else {
+        } 
+        else {
             $('.specific-faculty-option, .faculty-department-option').prop('disabled', false);
         }
     });
 
 
+    //---------------------------------------------------------//
     let specificFaculties = {};
 
 
@@ -429,6 +488,8 @@
                 departments: []
             };
         }
+
+        ///----------------------------------------------------------////
 
         const departmentSelection = $('#department-selection');
         const departmentCheckboxesDiv = $('#department-checkboxes');
@@ -561,7 +622,7 @@
         console.log('Updated specificFaculties:', specificFaculties);
     });
 
-
+//---//
     $('#save-selections').on('click', function() {
         console.log(specificFaculties);
         populateAccordion();
@@ -574,6 +635,7 @@
 
         $('#addSpecificFacultyModal').modal('hide');
     });
+//---//
 
 
     function handleQuestionnaireSubmit(e) {
@@ -656,12 +718,14 @@ function prepareAudienceData() {
     };
 }
 
+//---------------//
 // Build the audience data for 'student' role
 function buildStudentAudience() {
     const audienceData = {
         role_name: 'student',
         scope_type: '',
-        faculties: []
+        faculties: [],
+        courses: []
     };
 
     // Check if faculty options are visible
@@ -693,8 +757,11 @@ function buildStudentAudience() {
         }
     }
 
+    
+
     return audienceData;
 }
+//---------------//
 
 // Build the audience data for 'teaching_assistant' role
 function buildTeachingAssistanceAudience() {
