@@ -169,7 +169,7 @@
                             <label class="form-check-label" for="specific_course">Specific Course</label>
                         </div>
                         <div id="specific-faculty-options" style="display: none; padding-left: 2rem;">
-                            <div id="accordionoutline" class="accordion">
+                            <div id="facultyaccordionoutline" class="accordion">
 
                             </div>
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSpecificFacultyModal">
@@ -178,9 +178,11 @@
 
                         </div>
                         <div id="specific-course-options" style="display: none; padding-left: 2rem;">
-                            <div id="accordionoutline" class="accordion">
+                            <div id="courseaccordionoutline" class="accordion">
 
                             </div>
+
+
 
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSpecificCourseModal">
                                 Add Course
@@ -279,12 +281,14 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="faculty-dropdown">Select Course</label>
-                    <select class="form-select" id="faculty-dropdown" name="faculty">
+                    <label for="course-dropdown">Select Course</label>
+                    <select class="form-select" id="course-dropdown" name="faculty">
                         <option value="" selected disabled>Select a Course</option>
-                        @foreach($faculties as $id => $name)
-                        <option value="{{ $id }}">{{ $name }}</option>
-                        @endforeach
+                        <option value="cs101">CS101 - Introduction to Programming</option>
+                        <option value="cs102">CS102 - Data Structures</option>
+                        <option value="cs201">CS201 - Algorithms</option>
+                        <option value="cs301">CS301 - Software Engineering</option>
+                        <option value="cs401">CS401 - Artificial Intelligence</option>
                     </select>
                 </div>
             </div>
@@ -430,7 +434,7 @@
 
 
     function populateFacultyAccordion() {
-        const accordionContainer = $('#accordionoutline');
+        const accordionContainer = $('#facultyaccordionoutline');
         accordionContainer.empty();
 
         for (const facultyId in specificFaculties) {
@@ -448,7 +452,7 @@
                     </h2>
                 </div>
                 <div id="collapse${facultyId}" class="collapse" aria-labelledby="heading${facultyId}"
-                    data-parent="#accordionoutline">
+                    data-parent="#facultyaccordionoutline">
                     <div class="card-body">
                         ${facultyData.departments.map(department => {
                             return `
@@ -644,7 +648,7 @@ let specificCourses = {};
 
 
 function populateCourseAccordion() {
-    const accordionContainer = $('#accordionoutline');
+    const accordionContainer = $('#courseaccordionoutline');
     accordionContainer.empty();
 
     for (const courseId in specificCourses) {
