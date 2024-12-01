@@ -48,7 +48,7 @@
             </li>
 
             <li>
-                <a href="#" onclick="logout()">
+                <a href="#">
                     <img src="{{ asset('images/svg-icon/logout.svg') }}" class="img-fluid" alt="logout">
                     <span>Logout</span>
                 </a>
@@ -57,21 +57,4 @@
     </div>
     <!-- End Navigationbar -->
 </div>
-
-<script>
-    function logout() {
-        if (confirm("Are you sure you want to logout?")) {
-            var form = document.createElement('form');
-            form.method = 'POST';
-            form.action = "{{ route('logout') }}"; 
-            var csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = '_token'; 
-            csrfInput.value = '{{ csrf_token() }}'; 
-            form.appendChild(csrfInput);
-            document.body.appendChild(form);
-            form.submit();
-        }
-    }
-</script>
 <!-- End Sidebar -->
