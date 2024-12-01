@@ -1,75 +1,73 @@
     $(document).ready(function() {
-        $(document).ready(function() {
-            const selectedQuestions = {};
-        
-            // Handle module selection and fetch related questions
-            $('#module_select').on('change', function() {
-                const moduleId = $(this).val();
-                if (moduleId) {
-                    const url = window.routes.questionModuleQuestions.replace(':id', moduleId);
-        
-                    fetch(url)
-                        .then(response => {
-                            if (!response.ok) throw new Error('Network response was not ok');
-                            return response.json();
-                        })
-                        .then(data => {
-                            $('#question-list').empty();
-                            if (data.questions && data.questions.length > 0) {
-                                data.questions.forEach(question => {
-                                    const isChecked = selectedQuestions[question.id] ? 'checked' : '';
-                                    $('#question-list').append(`
-                                           <div class="form-check question-block d-flex align-items-center justify-content-between p-3 bg-light border rounded mb-2">
-                                               <div class="d-flex align-items-center">
-                                                   <input class="form-check-input module-question me-2" 
-                                                          type="checkbox" 
-                                                          value="${question.id}" 
-                                                          data-text="${question.text}" 
-                                                          data-type="${question.type}" 
-                                                          ${isChecked}>
-                                                   <label class="form-check-label me-4">${question.text}</label>
-                                               </div>
-                                               <span class="badge bg-secondary">${question.type}</span>
-                                           </div>
-                                       `);
-                                });
-                            } else {
-                                $('#question-list').append('<div>No questions available for this module.</div>');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error fetching questions:', error);
-                            swal('Error!', 'Unable to fetch questions. Please try again.', 'error');
-                        });
-                } else {
+    const selectedQuestions = {};
+
+
+    $('#module_select').on('change', function() {
+        const moduleId = $(this).val();
+        if (moduleId) {
+            const url = window.routes.questionModuleQuestions.replace(':id', moduleId);
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
                     $('#question-list').empty();
-                }
-            });
-        
-            // Handle question selection (checkbox change)
-            $(document).on('change', '.module-question', function() {
-                const questionId = $(this).val();
-                const questionText = $(this).data('text');
-                const questionType = $(this).data('type');
-        
-                if (this.checked) {
-                    selectedQuestions[questionId] = {
-                        text: questionText,
-                        type: questionType
-                    };
-                } else {
-                    delete selectedQuestions[questionId];
-                }
-                updateSelectedQuestions();
-            });
-        
-            function updateSelectedQuestions() {
-                $('#selected-questions').empty(); // Clear previous questions
-                let index = 0;
-                
-            
-                $.each(selectedQuestions, function(id, question) {
-                    var formattedType = '';
+                    if (data.questions && data.questions.length > 0) {
+                        data.questions.forEach(question => {
+                            const isChecked = selectedQuestions[question.id] ? 'checked' : '';
+                            $('#question-list').append(`
+                                   <div class="form-check question-block d-flex align-items-center justify-content-between p-3 bg-light border rounded mb-2">
+                                       <div class="d-flex align-items-center">
+                                           <input class="form-check-input module-question me-2" 
+                                                  type="checkbox" 
+                                                  value="${question.id}" 
+                                                  data-text="${question.text}" 
+                                                  data-type="${question.type}" 
+                                                  ${isChecked}>
+                                           <label class="form-check-label me-4">${question.text}</label>
+                                       </div>
+                                       <span class="badge bg-secondary">${question.type}</span>
+                                   </div>
+                               `);
+                        });
+                    } else {
+                        $('#question-list').append('<div>No questions available for this module.</div>');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching questions:', error);
+                    swal('Error!', 'Unable to fetch questions. Please try again.', 'error');
+                });
+        } else {
+            $('#question-list').empty();
+        }
+    });
+
+
+    $(document).on('change', '.module-question', function() {
+        const questionId = $(this).val();
+        const questionText = $(this).data('text');
+        const questionType = $(this).data('type');
+
+        if (this.checked) {
+            selectedQuestions[questionId] = {
+                text: questionText,
+                type: questionType
+            };
+        } else {
+            delete selectedQuestions[questionId];
+        }
+        updateSelectedQuestions();
+    });
+
+
+    function updateSelectedQuestions() {
+        $('#selected-questions').empty();
+        let index = 0;
+        $.each(selectedQuestions, function(id, question) {
+            var formattedType = '';
                     if (question.type === 'scaled_text') {
                         formattedType = "Scale (description)";
                     } else {
@@ -92,216 +90,247 @@
                         </div>
                     `);
                     index++;
-                });
-            }
-            
-            // Function to toggle the visibility of options in the accordion item
-            function toggleOptions(index) {
-                const optionsDiv = $(`#options-${index}`);
-                const optionsButton = $(`[data-question-id='${index}']`);
-            
-                // Toggle options visibility
-                optionsDiv.toggle();
-            
-                // Change button text based on visibility
-                if (optionsDiv.is(":visible")) {
-                    optionsButton.text("Hide Options");
-                } else {
-                    optionsButton.text("Show Options");
-                }
-            }
-            
-            
-        
-            // Remove a question from the selected list
-            window.removeQuestion = function(id) {
-                delete selectedQuestions[id];
-                $(`.module-question[value="${id}"]`).prop('checked', false);
-                updateSelectedQuestions();
-            }
-        
-            // Show options for a specific question
-            window.showOptions = function(element) {
-                const questionId = $(element).data('question-id');
-        
-                $('#options-list').html(`Options for question ${questionId}`);
-                $('#optionsModal').modal('show');
-            }
-        
-            // Toggle visibility of faculty options based on student checkbox
-            $('#students').on('change', function() {
-                $('#faculty-options').toggle(this.checked);
-            });
-        
-            // Toggle visibility of specific faculty or course options based on selected radio button
-            $('input[name="faculty_option"]').on('change', function() {
-                $('#specific-faculty-options').toggle(this.value === 'specific_faculty');
-                $('#specific-course-options').toggle(this.value === 'specific_course');
-        
-                if (this.value === 'all_faculty') {
-                    $('.specific-faculty-option, .faculty-department-option').prop('checked', false).prop('disabled', true);
-                    $('#specific-faculty-options').find('input[type="checkbox"]').prop('checked', false);
-                } else {
-                    $('.specific-faculty-option, .faculty-department-option').prop('disabled', false);
-                }
-            });
-        
-            let specificFaculties = {};
-        
-            // Populate the faculty accordion with selected faculties and departments
-            function populateFacultyAccordion() {
-                const accordionContainer = $('#facultyaccordionoutline');
-                accordionContainer.empty();
-        
-                for (const facultyId in specificFaculties) {
-                    const facultyData = specificFaculties[facultyId];
-        
-                    const facultyCard = `
-                    <div class="card">
-                        <div class="card-header" id="heading${facultyId}">
-                            <h2 class="mb-0">
-                                <button class="btn btn-link" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#collapse${facultyId}" aria-expanded="false"
-                                    aria-controls="collapse${facultyId}">
-                                    <i class="feather icon-award me-2"></i>${facultyData.facultyName}
-                                </button>
-                            </h2>
-                        </div>
-                        <div id="collapse${facultyId}" class="collapse" aria-labelledby="heading${facultyId}"
-                            data-parent="#facultyaccordionoutline">
-                            <div class="card-body">
-                                ${facultyData.departments.map(department => {
-                                    return `
-                                        <div class="department-card">
-                                            <h6>${department.departmentName}</h6>
-                                            <div class="department-programs" id="programs-${facultyId}-${department.departmentId}">
-                                                ${department.programs && department.programs.length > 0 ? `
-                                                    <ul>
-                                                        ${department.programs.map(program => {
-                                                            return `<li>${program.programName}</li>`;
-                                                        }).join('')}
-                                                    </ul>
-                                                ` : `<p>No programs available</p>`}
-                                            </div>
-                                        </div>
-                                    `;
-                                }).join('')}
-                            </div>
-                        </div>
-                    </div>
-                `;
-        
-                    accordionContainer.append(facultyCard);
-                }
-            }
-        
-            // Handle faculty selection and fetch related departments
-            $('#faculty-dropdown').on('change', function() {
-                const facultyId = $(this).val();
-        
-                if (!specificFaculties[facultyId]) {
-                    specificFaculties[facultyId] = {
-                        facultyId: facultyId,
-                        facultyName: $(this).find('option:selected').text(),
-                        departments: []
-                    };
-                }
-        
-                const departmentSelection = $('#department-selection');
-                const departmentCheckboxesDiv = $('#department-checkboxes');
-        
-                $('#program-selection').empty();
-                $('#program-selection').hide();
-        
-                const url = window.routes.facultyDepartment.replace(':id', facultyId);
-                $.ajax({
-                    url: url,
-                    method: 'GET',
-                    success: function(data) {
-                        departmentCheckboxesDiv.empty();
-        
-                        if (data.length > 0) {
-                            data.forEach(function(department) {
-                                departmentCheckboxesDiv.append(`
-                                <div class="form-check">
-                                    <input class="form-check-input department-option" type="checkbox" name="faculty_${facultyId}_department[]" value="${department.id}" id="faculty_${facultyId}_department_${department.id}">
-                                    <label class="form-check-label" for="faculty_${facultyId}_department_${department.id}">${department.name}</label>
-                                </div>
-                            `);
-        
-                                $('#program-selection').append(`
-                                <div id="program-selection-${department.id}" class="program-section" style="display:none;">
-                                    <h6>Programs for ${department.name}</h6>
-                                    <div id="program-checkboxes-${department.id}">
-                                        <!-- Program checkboxes will be dynamically loaded here -->
+        });
+    }
+
+    // Function to toggle the visibility of options in the accordion item
+    function toggleOptions(index) {
+        const optionsDiv = $(`#options-${index}`);
+        const optionsButton = $(`[data-question-id='${index}']`);
+    
+        // Toggle options visibility
+        optionsDiv.toggle();
+    
+        // Change button text based on visibility
+        if (optionsDiv.is(":visible")) {
+            optionsButton.text("Hide Options");
+        } else {
+            optionsButton.text("Show Options");
+        }
+    }
+    
+    
+
+    // Remove a question from the selected list
+    window.removeQuestion = function(id) {
+        delete selectedQuestions[id];
+        $(`.module-question[value="${id}"]`).prop('checked', false);
+        updateSelectedQuestions();
+    }
+
+    // Show options for a specific question
+    window.showOptions = function(element) {
+        const questionId = $(element).data('question-id');
+
+        $('#options-list').html(`Options for question ${questionId}`);
+        $('#optionsModal').modal('show');
+    }
+
+
+    window.removeQuestion = function(id) {
+        delete selectedQuestions[id];
+        $(`.module-question[value="${id}"]`).prop('checked', false);
+        updateSelectedQuestions();
+    }
+
+
+    window.showOptions = function(element) {
+        const questionId = $(element).data('question-id');
+
+        $('#options-list').html(`Options for question ${questionId}`);
+        $('#optionsModal').modal('show');
+    }
+
+
+    $('#students').on('change', function() {
+        $('#faculty-options').toggle(this.checked);
+    });
+
+
+    $('input[name="faculty_option"]').on('change', function() {
+        $('#specific-faculty-options').toggle(this.value === 'specific_faculty');
+        $('#specific-course-options').toggle(this.value === 'specific_course');
+
+
+        if (this.value === 'all_faculty') {
+            $('.specific-faculty-option, .faculty-department-option').prop('checked', false).prop('disabled', true);
+            $('#specific-faculty-options').find('input[type="checkbox"]').prop('checked', false);
+        } 
+        else {
+            $('.specific-faculty-option, .faculty-department-option').prop('disabled', false);
+        }
+    });
+
+
+    let specificFaculties = {};
+
+
+    function populateFacultyAccordion() {
+        const accordionContainer = $('#facultyaccordionoutline');
+        accordionContainer.empty();
+
+        for (const facultyId in specificFaculties) {
+            const facultyData = specificFaculties[facultyId];
+
+            const facultyCard = `
+            <div class="card">
+                <div class="card-header" id="heading${facultyId}">
+                    <h2 class="mb-0">
+                        <button class="btn btn-link" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapse${facultyId}" aria-expanded="false"
+                            aria-controls="collapse${facultyId}">
+                            <i class="feather icon-award me-2"></i>${facultyData.facultyName}
+                        </button>
+                    </h2>
+                </div>
+                <div id="collapse${facultyId}" class="collapse" aria-labelledby="heading${facultyId}"
+                    data-parent="#facultyaccordionoutline">
+                    <div class="card-body">
+                        ${facultyData.departments.map(department => {
+                            return `
+                                <div class="department-card">
+                                    <h6>${department.departmentName}</h6>
+                                    <div class="department-programs" id="programs-${facultyId}-${department.departmentId}">
+                                        ${department.programs && department.programs.length > 0 ? `
+                                            <ul>
+                                                ${department.programs.map(program => {
+                                                    return `<li>${program.programName}</li>`;
+                                                }).join('')}
+                                            </ul>
+                                        ` : `<p>No programs available</p>`}
                                     </div>
                                 </div>
-                            `);
-                            });
-                            departmentSelection.show();
-                        } else {
-                            departmentCheckboxesDiv.append('<p>No departments available.</p>');
-                        }
-                    },
-                    error: function() {
-                        swal('Error!', 'Unable to fetch departments. Please try again.', 'error');
-                    }
-                });
-            });
-        
-            // Handle department selection and fetch related programs
-            $(document).on('change', '.department-option', function() {
-                const departmentId = this.value;
-                const facultyId = $('#faculty-dropdown').val();
-                const departmentSelectionDiv = $('#department-selection');
-                const programsParentSelectionDiv = $('#program-selection');
-                const programSelectionDiv = $('#program-selection-' + departmentId);
-                const programCheckboxesDiv = $('#program-checkboxes-' + departmentId);
-        
-                const faculty = specificFaculties[facultyId];
-                let department = faculty?.departments.find(d => d.departmentId == departmentId);
-        
-                if (this.checked) {
-                    if (!department) {
-                        department = {
-                            departmentId: departmentId,
-                            departmentName: $(this).next('label').text(),
-                            programs: []
-                        };
-                        faculty.departments.push(department);
-                    }
-        
-                    const url = window.routes.departmentPrograms.replace(':id', departmentId);
-                    $.ajax({
-                        url: url,
-                        method: 'GET',
-                        success: function(data) {
-                            programCheckboxesDiv.empty();
-        
-                            if (data.length > 0) {
-                                data.forEach(function(program) {
-                                    programCheckboxesDiv.append(`
-                                        <div class="form-check">
-                                            <input class="form-check-input program-option" type="checkbox" name="programs_${facultyId}_${departmentId}[]" value="${program.id}" id="program_${facultyId}_${departmentId}_${program.id}">
-                                            <label class="form-check-label" for="program_${facultyId}_${departmentId}_${program.id}">${program.name}</label>
-                                        </div>
-                                    `);
-                                });
-        
-                                programSelectionDiv.show();
-                            }
-                        },
-                        error: function() {
-                            swal('Error!', 'Unable to fetch programs. Please try again.', 'error');
-                        }
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+
+            accordionContainer.append(facultyCard);
+        }
+    }
+
+
+
+    $('#faculty-dropdown').on('change', function() {
+        const facultyId = $(this).val();
+
+
+        if (!specificFaculties[facultyId]) {
+            specificFaculties[facultyId] = {
+                facultyId: facultyId,
+                facultyName: $(this).find('option:selected').text(),
+                departments: []
+            };
+        }
+
+
+        const departmentSelection = $('#department-selection');
+        const departmentCheckboxesDiv = $('#department-checkboxes');
+
+
+        $('#program-selection').empty();
+        $('#program-selection').hide();
+
+
+        const url = window.routes.facultyDepartment.replace(':id', facultyId);
+        $.ajax({
+            url: url,
+            method: 'GET',
+            success: function(data) {
+                departmentCheckboxesDiv.empty();
+
+                if (data.length > 0) {
+                    data.forEach(function(department) {
+                        departmentCheckboxesDiv.append(`
+                        <div class="form-check">
+                            <input class="form-check-input department-option" type="checkbox" name="faculty_${facultyId}_department[]" value="${department.id}" id="faculty_${facultyId}_department_${department.id}">
+                            <label class="form-check-label" for="faculty_${facultyId}_department_${department.id}">${department.name}</label>
+                        </div>
+                    `);
+
+
+                        $('#program-selection').append(`
+                        <div id="program-selection-${department.id}" class="program-section" style="display:none;">
+                            <h6>Programs for ${department.name}</h6>
+                            <div id="program-checkboxes-${department.id}">
+                                <!-- Program checkboxes will be dynamically loaded here -->
+                            </div>
+                        </div>
+                    `);
                     });
+                    departmentSelection.show();
                 } else {
-                    programSelectionDiv.hide();
-                    department.programs = [];
+                    departmentCheckboxesDiv.append('<p>No departments available.</p>');
+                }
+            },
+            error: function() {
+                swal('Error!', 'Unable to fetch departments. Please try again.', 'error');
+            }
+        });
+    });
+
+
+    $(document).on('change', '.department-option', function() {
+        const departmentId = this.value;
+        const facultyId = $('#faculty-dropdown').val();
+        const departmentSelectionDiv = $('#department-selection');
+        const programsParentSelectionDiv = $('#program-selection');
+        const programSelectionDiv = $('#program-selection-' + departmentId);
+        const programCheckboxesDiv = $('#program-checkboxes-' + departmentId);
+
+        const faculty = specificFaculties[facultyId];
+        let department = faculty?.departments.find(d => d.departmentId == departmentId);
+
+        if (this.checked) {
+            if (!department) {
+                department = {
+                    departmentId: departmentId,
+                    departmentName: $(this).next('label').text(),
+                    programs: []
+                };
+                faculty.departments.push(department);
+            }
+
+            const url = window.routes.departmentPrograms.replace(':id', departmentId);
+            $.ajax({
+                url: url,
+                method: 'GET',
+                success: function(data) {
+                    programCheckboxesDiv.empty();
+
+                    if (data.length > 0) {
+                        data.forEach(function(program) {
+                            programCheckboxesDiv.append(`
+                            <div class="form-check">
+                                <input class="form-check-input program-option" type="checkbox" 
+                                    name="department_${departmentId}_program[]" value="${program.id}" 
+                                    id="program_${program.id}" data-program-id="${program.id}">
+                                <label class="form-check-label" for="program_${program.id}">${program.name}</label>
+                            </div>
+                        `);
+                        });
+
+                        programsParentSelectionDiv.show();
+                        programSelectionDiv.show();
+                    } else {
+                        programCheckboxesDiv.append('<p>No programs available.</p>');
+                    }
+                },
+                error: function() {
+                    swal('Error!', 'Unable to fetch programs. Please try again.', 'error');
                 }
             });
-        });
-        
+        } else {
+            if (department) {
+                faculty.departments = faculty.departments.filter(d => d.departmentId != departmentId);
+            }
+
+            programSelectionDiv.hide();
+            programCheckboxesDiv.empty();
+        }
+    });
 
     $(document).on('change', '.program-option', function() {
         const facultyId = $('#faculty-dropdown').val();
