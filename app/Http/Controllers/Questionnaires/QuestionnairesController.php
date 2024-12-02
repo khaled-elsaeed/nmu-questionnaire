@@ -305,10 +305,8 @@ public function destroy($id)
 public function results()
 {
     try {
-        // Eager load the related `questionnaire` for each `QuestionnaireTarget`
         $questionnaires = QuestionnaireTarget::with('questionnaire')->get();
 
-        // Pass the `questionnaires` (which includes the associated `Questionnaire`) to the view
         return view('admin.questionnaires.result', compact('questionnaires'));
     } catch (\Exception $exception) {
         Log::error('Failed to retrieve questionnaires in results method: ' . $exception->getMessage());
@@ -319,10 +317,8 @@ public function results()
 
 public function showStats($questionnaireTargetId)
 {
-    // Get the questionnaire target, and eager load the related questionnaire and other needed data
     $questionnaireTarget = QuestionnaireTarget::with([
         'questionnaire.questions.answers' => function ($query) use ($questionnaireTargetId) {
-            // Join the responses table to filter answers by questionnaire_target_id
             $query->whereHas('response', function($query) use ($questionnaireTargetId) {
                 $query->where('questionnaire_target_id', $questionnaireTargetId);
             });
@@ -331,7 +327,7 @@ public function showStats($questionnaireTargetId)
     ])
     ->findOrFail($questionnaireTargetId);
 
-    $questionnaire = $questionnaireTarget->questionnaire; // Get the associated questionnaire
+    $questionnaire = $questionnaireTarget->questionnaire; 
 
     // Initialize stats array
     $stats = [
@@ -344,14 +340,13 @@ public function showStats($questionnaireTargetId)
         'scaled_text_answers' => [],
         'scaled_numerical_answers' => [],
         'scale_answers' => [],
-        'scaled_text_counts' => [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0], // Breakdown for scaled_text counts
-        'scaled_numerical_counts' => [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0], // Breakdown for numerical counts
+        'scaled_text_counts' => [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0], 
+        'scaled_numerical_counts' => [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0], 
     ];
 
-    $question_stats = []; // Array to hold stats for each question
+    $question_stats = []; 
 
     foreach ($questionnaire->questions as $question) {
-        // Group the answers by response_id (each response for this question)
         $responses = $question->answers->groupBy('response.user_id');
         $question_stat = [
             'total_responses' => $responses->count(),
