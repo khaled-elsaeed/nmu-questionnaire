@@ -18,7 +18,14 @@ class QuestionnaireTarget extends Model
     ];
 
   // QuestionnaireTarget.php
-public function questionnaire()
+// In App\Models\QuestionnaireTarget.php
+
+public function responses()
+{
+    return $this->hasMany(Response::class, 'questionnaire_target_id');
+}
+
+public function Questionnaire()
 {
     return $this->belongsTo(Questionnaire::class);
 }

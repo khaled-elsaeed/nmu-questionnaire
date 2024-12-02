@@ -7,26 +7,24 @@
     <!-- Card for General Statistics -->
     <div class="card m-b-30">
         <div class="card-header bg-primary text-white">
-            <h5 class="card-title">{{ $questionnaire->title }} - Overview</h5>
+            <h5 class="card-title">{{ $questionnaireTarget->questionnaire->title }} - Overview</h5>
         </div>
         <div class="card-body">
-            <h5 class="mb-4">General Stats</h5>
+            <h5 class="mb-4">General Stats for Target: {{ $questionnaireTarget->name }}</h5>
 
             @if($stats['total_responses'] == 0)
                 <div class="alert alert-secondary">No responses yet.</div>
             @else
                 <ul class="list-group mb-4">
                     <li class="list-group-item"><strong>Total Responses:</strong> {{ $stats['total_responses'] }}</li>
-                    <li class="list-group-item"><strong>Text Responses:</strong> {{ $stats['text_based_responses'] }}</li>
                     <li class="list-group-item"><strong>Scaled Text Avg:</strong> 
-                    @php
-                        // Mapping the numeric average to the corresponding English description using mapArabicTextToEnglish
-                        $scaledTextAvg = $stats['scaled_text_avg'];
-                        $scaledTextAvgDescription = mapArabicTextToEnglish($scaledTextAvg);
-                    @endphp
-
-                    {{ $scaledTextAvgDescription }}
-                </li>
+                        @php
+                            // Mapping the numeric average to the corresponding English description using mapArabicTextToEnglish
+                            $scaledTextAvg = $stats['scaled_text_avg'];
+                            $scaledTextAvgDescription = mapArabicTextToEnglish($scaledTextAvg);
+                        @endphp
+                        {{ $scaledTextAvgDescription }}
+                    </li>
 
                     <li class="list-group-item"><strong>Scaled Numerical Avg:</strong> 
                         {{ is_numeric($stats['scaled_numerical_avg']) ? number_format($stats['scaled_numerical_avg'], 2) : $stats['scaled_numerical_avg'] }}
@@ -42,54 +40,72 @@
     <!-- Card for Individual Question Statistics -->
     <div class="card m-b-30">
         <div class="card-header bg-secondary text-white">
-            <h5 class="card-title">Question Stats</h5>
+            <h5 class="card-title">Question Stats for Target: {{ $questionnaireTarget->name }}</h5>
         </div>
         <div class="card-body">
             @foreach($question_stats as $qStat)
-                <div class="card mb-3">
-                    <div class="card-header bg-light">
-                        <strong>{{ $qStat['question'] }}</strong>
+                <!-- Check if it's a text-based question and only display answers -->
+                @if($qStat['type'] === 'text_based')
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <strong>{{ $qStat['question'] }}</strong>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group">
+                                <li class="list-group-item"><strong>Text-Based Answers:</strong>
+                                    <ul>
+                                        @foreach($qStat['stats']['text_based_answers'] as $answer)
+                                            <li>{{ $answer }}</li>
+                                        @endforeach
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <ul class="list-group">
-                            <li class="list-group-item"><strong>Total Responses:</strong> {{ $qStat['stats']['total_responses'] }}</li>
-                            <li class="list-group-item"><strong>Text Responses:</strong> {{ $qStat['stats']['text_based_responses'] }}</li>
-                            <li class="list-group-item"><strong>Scaled Text Avg:</strong> 
-                                @php
-                                    // Mapping the numeric average to the corresponding English description using mapArabicTextToEnglish
-                                    $scaledTextAvg = $qStat['stats']['scaled_text_avg'];
-                                    
-                                    // Check if the scaledTextAvg is numeric, then map it to English
-                                    $scaledTextAvgDescription = mapArabicTextToEnglish($scaledTextAvg);
-                                @endphp
+                @else
+                    <!-- Skip stats for non-text-based questions -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <strong>{{ $qStat['question'] }}</strong>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group">
+                                <li class="list-group-item"><strong>Total Responses:</strong> {{ $qStat['stats']['total_responses'] }}</li>
+                                <li class="list-group-item"><strong>Scaled Text Avg:</strong> 
+                                    @php
+                                        // Mapping the numeric average to the corresponding English description using mapArabicTextToEnglish
+                                        $scaledTextAvg = $qStat['stats']['scaled_text_avg'];
+                                        $scaledTextAvgDescription = mapArabicTextToEnglish($scaledTextAvg);
+                                    @endphp
+                                    {{ $scaledTextAvgDescription }}
+                                </li>
 
-                                {{ $scaledTextAvgDescription }}
-                            </li>
-
-                            <li class="list-group-item"><strong>Scaled Numerical Avg:</strong> 
-                                {{ is_numeric($qStat['stats']['scaled_numerical_avg']) ? number_format($qStat['stats']['scaled_numerical_avg'], 2) : $qStat['stats']['scaled_numerical_avg'] }}
-                            </li>
-                            <li class="list-group-item"><strong>Scale Average:</strong> 
-                                {{ is_numeric($qStat['stats']['scale_avg']) ? number_format($qStat['stats']['scale_avg'], 2) : $qStat['stats']['scale_avg'] }}
-                            </li>
-                            <li class="list-group-item"><strong>Scaled Text Responses Breakdown:</strong>
-                                @foreach($qStat['stats']['scaled_text_counts'] as $key => $count)
-                                    <span class="badge badge-info">{{ mapArabicTextToEnglish($key) }}: {{ $count }}</span>
-                                @endforeach
-                            </li>
-                            <li class="list-group-item"><strong>Scaled Numerical Responses Breakdown:</strong>
-                                @foreach($qStat['stats']['scaled_numerical_counts'] as $key => $count)
-                                    <span class="badge badge-info">{{ $key }}: {{ $count }}</span>
-                                @endforeach
-                            </li>
-                        </ul>
+                                <li class="list-group-item"><strong>Scaled Numerical Avg:</strong> 
+                                    {{ is_numeric($qStat['stats']['scaled_numerical_avg']) ? number_format($qStat['stats']['scaled_numerical_avg'], 2) : $qStat['stats']['scaled_numerical_avg'] }}
+                                </li>
+                                <li class="list-group-item"><strong>Scale Average:</strong> 
+                                    {{ is_numeric($qStat['stats']['scale_avg']) ? number_format($qStat['stats']['scale_avg'], 2) : $qStat['stats']['scale_avg'] }}
+                                </li>
+                                <li class="list-group-item"><strong>Scaled Text Responses Breakdown:</strong>
+                                    @foreach($qStat['stats']['scaled_text_counts'] as $key => $count)
+                                        <span class="badge badge-info">{{ mapArabicTextToEnglish($key) }}: {{ $count }}</span>
+                                    @endforeach
+                                </li>
+                                <li class="list-group-item"><strong>Scaled Numerical Responses Breakdown:</strong>
+                                    @foreach($qStat['stats']['scaled_numerical_counts'] as $key => $count)
+                                        <span class="badge badge-info">{{ $key }}: {{ $count }}</span>
+                                    @endforeach
+                                </li>
+                            </ul>
+                        </div>
                     </div>
-                </div>
+                @endif
             @endforeach
         </div>
     </div>
 </div>
 @endsection
+
 @php
     // Helper function to map Arabic scaled text answers to English descriptions
     function mapArabicTextToEnglish($answer) {

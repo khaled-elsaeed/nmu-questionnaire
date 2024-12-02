@@ -303,24 +303,58 @@ public function destroy($id)
 
 
 public function results()
-    {
-        try {
-            $questionnaires = Questionnaire::get();
-            return view('admin.questionnaires.result', compact('questionnaires'));
-        } catch (\Exception $exception) {
-            Log::error('Failed to retrieve questionnaires in index method: ' . $exception->getMessage());
-            return response()->json(['success' => false, 'message' => 'Unable to retrieve questionnaires.'], 500);
-        }
+{
+    try {
+        // Eager load the related `questionnaire` for each `QuestionnaireTarget`
+        $questionnaires = QuestionnaireTarget::with('questionnaire')->get();
+
+        // Pass the `questionnaires` (which includes the associated `Questionnaire`) to the view
+        return view('admin.questionnaires.result', compact('questionnaires'));
+    } catch (\Exception $exception) {
+        Log::error('Failed to retrieve questionnaires in results method: ' . $exception->getMessage());
+        return response()->json(['success' => false, 'message' => 'Unable to retrieve questionnaires.'], 500);
     }
+}
 
 
-    public function showStats($id)
-    {
-        $questionnaire = Questionnaire::with(['questions.answers', 'questions.options'])->findOrFail($id);
-    
-        // Initialize stats array
-        $stats = [
-            'total_responses' => 0,
+public function showStats($questionnaireTargetId)
+{
+    // Get the questionnaire target, and eager load the related questionnaire and other needed data
+    $questionnaireTarget = QuestionnaireTarget::with([
+        'questionnaire.questions.answers' => function ($query) use ($questionnaireTargetId) {
+            // Join the responses table to filter answers by questionnaire_target_id
+            $query->whereHas('response', function($query) use ($questionnaireTargetId) {
+                $query->where('questionnaire_target_id', $questionnaireTargetId);
+            });
+        },
+        'questionnaire.questions.options'
+    ])
+    ->findOrFail($questionnaireTargetId);
+
+    $questionnaire = $questionnaireTarget->questionnaire; // Get the associated questionnaire
+
+    // Initialize stats array
+    $stats = [
+        'total_responses' => 0,
+        'text_based_responses' => 0,
+        'scaled_text_avg' => 0,
+        'scaled_numerical_avg' => 0,
+        'scale_avg' => 0,
+        'text_based_answers' => [],
+        'scaled_text_answers' => [],
+        'scaled_numerical_answers' => [],
+        'scale_answers' => [],
+        'scaled_text_counts' => [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0], // Breakdown for scaled_text counts
+        'scaled_numerical_counts' => [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0], // Breakdown for numerical counts
+    ];
+
+    $question_stats = []; // Array to hold stats for each question
+
+    foreach ($questionnaire->questions as $question) {
+        // Group the answers by response_id (each response for this question)
+        $responses = $question->answers->groupBy('response.user_id');
+        $question_stat = [
+            'total_responses' => $responses->count(),
             'text_based_responses' => 0,
             'scaled_text_avg' => 0,
             'scaled_numerical_avg' => 0,
@@ -329,95 +363,86 @@ public function results()
             'scaled_text_answers' => [],
             'scaled_numerical_answers' => [],
             'scale_answers' => [],
-            'scaled_text_counts' => [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0], // Breakdown for scaled_text counts
-            'scaled_numerical_counts' => [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0], // Breakdown for numerical counts
+            'scaled_text_counts' => [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0],
+            'scaled_numerical_counts' => [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0],
         ];
-    
-        $question_stats = []; // Array to hold stats for each question
-    
-        foreach ($questionnaire->questions as $question) {
-            $responses = $question->answers->groupBy('response.user_id');
-            $question_stat = [
-                'total_responses' => $responses->count(),
-                'text_based_responses' => 0,
-                'scaled_text_avg' => 0,
-                'scaled_numerical_avg' => 0,
-                'scale_avg' => 0,
-                'text_based_answers' => [],
-                'scaled_text_answers' => [],
-                'scaled_numerical_answers' => [],
-                'scale_answers' => [],
-                'scaled_text_counts' => [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0], 
-                'scaled_numerical_counts' => [1 => 0, 2 => 0, 3 => 0, 4 => 0, 5 => 0], 
-            ];
-    
-            foreach ($responses as $response) {
-                switch ($question->type) {
-                    case 'text_based':
-                        $question_stat['text_based_responses']++;
-                        $question_stat['text_based_answers'][] = $response->pluck('answer_text')->first();
-                        break;
-    
-                    case 'scaled_text':
-                        $answers = $response->pluck('answer_text')->first();
-                        $question_stat['scaled_text_answers'][] = $answers;
-                        $text_scale = [
-                            'Bad' => 1, 'سيء' => 1,
-                            'Fair' => 2, 'مقبول' => 2,
-                            'Good' => 3, 'جيد' => 3,
-                            'Very Good' => 4, 'جيد جدا' => 4,
-                            'Excellent' => 5, 'ممتاز' => 5
-                        ];
-                        $numericAnswer = $text_scale[$answers] ?? 0;
+
+        foreach ($responses as $response) {
+            switch ($question->type) {
+                case 'text_based':
+                    $question_stat['text_based_responses']++;
+                    $question_stat['text_based_answers'][] = $response->pluck('answer_text')->first(); // Collect text answers
+                    break;
+
+                case 'scaled_text':
+                    $answers = $response->pluck('answer_text')->first();
+                    $question_stat['scaled_text_answers'][] = $answers;
+                    $text_scale = [
+                        'Bad' => 1, 'سيء' => 1,
+                        'Fair' => 2, 'مقبول' => 2,
+                        'Good' => 3, 'جيد' => 3,
+                        'Very Good' => 4, 'جيد جدا' => 4,
+                        'Excellent' => 5, 'ممتاز' => 5
+                    ];
+                    $numericAnswer = $text_scale[$answers] ?? 0;
+                    if (array_key_exists($numericAnswer, $question_stat['scaled_text_counts'])) {
                         $question_stat['scaled_text_counts'][$numericAnswer]++;
-                        break;
-    
-                    case 'scaled_numerical':
-                        $answers = $response->pluck('answer_text')->first();
-                        $question_stat['scaled_numerical_answers'][] = (int) $answers;
-                        $numericAnswer = (int) $answers;
-                        $question_stat['scaled_numerical_counts'][$numericAnswer]++;
-                        break;
-    
-                    case 'scale':
-                        $answers = $response->pluck('answer_text')->first();
-                        $question_stat['scale_answers'][] = (int) $answers;
-                        break;
-                }
+                    }
+                    break;
+
+                case 'scaled_numerical':
+                    $answers = $response->pluck('answer_text')->first();
+                    $question_stat['scaled_numerical_answers'][] = (int) $answers;
+                    $numericAnswer = (int) $answers;
+                    $question_stat['scaled_numerical_counts'][$numericAnswer]++;
+                    break;
+
+                case 'scale':
+                    $answers = $response->pluck('answer_text')->first();
+                    $question_stat['scale_answers'][] = (int) $answers;
+                    break;
             }
-    
-            if (!empty($question_stat['scaled_numerical_answers'])) {
-                $question_stat['scaled_numerical_avg'] = array_sum($question_stat['scaled_numerical_answers']) / count($question_stat['scaled_numerical_answers']);
-            }
-    
-            if (!empty($question_stat['scale_answers'])) {
-                $question_stat['scale_avg'] = array_sum($question_stat['scale_answers']) / count($question_stat['scale_answers']);
-            }
-    
-            if (!empty($question_stat['scaled_text_answers'])) {
-                $text_scale = ['Bad' => 1, 'سيء' => 1, 'Fair' => 2, 'مقبول' => 2, 'Good' => 3, 'جيد' => 3, 'Very Good' => 4, 'جيد جدا' => 4, 'Excellent' => 5, 'ممتاز' => 5];
-                $numericAnswers = array_map(function ($answer) use ($text_scale) {
-                    return $text_scale[$answer] ?? 0;
-                }, $question_stat['scaled_text_answers']);
-                $question_stat['scaled_text_avg'] = array_sum($numericAnswers) / count($numericAnswers);
-            }
-    
-            $question_stats[] = [
-                'question' => $question->text,
-                'stats' => $question_stat
-            ];
-    
-            // Update global stats
-            $stats['total_responses'] += $question_stat['total_responses'];
-            $stats['text_based_responses'] += $question_stat['text_based_responses'];
-            $stats['scaled_text_avg'] += $question_stat['scaled_text_avg'];
-            $stats['scaled_numerical_avg'] += $question_stat['scaled_numerical_avg'];
-            $stats['scale_avg'] += $question_stat['scale_avg'];
         }
-    
-        // Return stats to the view
-        return view('admin.questionnaires.stats', compact('questionnaire', 'stats', 'question_stats'));
+
+        if (!empty($question_stat['scaled_numerical_answers'])) {
+            $question_stat['scaled_numerical_avg'] = array_sum($question_stat['scaled_numerical_answers']) / count($question_stat['scaled_numerical_answers']);
+        }
+
+        if (!empty($question_stat['scale_answers'])) {
+            $question_stat['scale_avg'] = array_sum($question_stat['scale_answers']) / count($question_stat['scale_answers']);
+        }
+
+        if (!empty($question_stat['scaled_text_answers'])) {
+            $text_scale = ['Bad' => 1, 'سيء' => 1, 'Fair' => 2, 'مقبول' => 2, 'Good' => 3, 'جيد' => 3, 'Very Good' => 4, 'جيد جدا' => 4, 'Excellent' => 5, 'ممتاز' => 5];
+            $numericAnswers = array_map(function ($answer) use ($text_scale) {
+                return $text_scale[$answer] ?? 0;
+            }, $question_stat['scaled_text_answers']);
+            $question_stat['scaled_text_avg'] = array_sum($numericAnswers) / count($numericAnswers);
+        }
+
+        // Add stats for this question to the array
+        $question_stats[] = [
+            'question' => $question->text,
+            'stats' => $question_stat,
+            'type' => $question->type,
+        ];
+
+        // Update global stats
+        $stats['total_responses'] += $question_stat['total_responses'];
+        $stats['text_based_responses'] += $question_stat['text_based_responses'];
+        $stats['scaled_text_avg'] += $question_stat['scaled_text_avg'];
+        $stats['scaled_numerical_avg'] += $question_stat['scaled_numerical_avg'];
+        $stats['scale_avg'] += $question_stat['scale_avg'];
     }
+
+    // Return stats to the view
+    return view('admin.questionnaires.stats', compact('questionnaireTarget', 'stats', 'question_stats'));
+}
+
+
+
+
+
     
     
 

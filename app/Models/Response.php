@@ -10,15 +10,18 @@ class Response extends Model
     use HasFactory;
 
     protected $fillable = [
-        'questionnaire_id',
+        'questionnaire_target_id',
         'user_id',
     ];
 
-     // A response belongs to a questionnaire
-     public function questionnaire()
-     {
-         return $this->belongsTo(Questionnaire::class);
-     }
+     // In App\Models\Response.php
+
+public function questionnaireTarget()
+{
+    return $this->belongsTo(QuestionnaireTarget::class, 'questionnaire_target_id');
+}
+
+     
  
      // A response can have many answers
      public function answers()

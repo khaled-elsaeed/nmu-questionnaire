@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Responder;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Questionnaire;
+use App\Models\QuestionnaireTarget;
+
 use App\Models\Response;
 use App\Models\Answer;
 use App\Models\Question;
@@ -18,28 +20,33 @@ class ResponderQuestionnaireController extends Controller
 {
     
     public function show($id)
-    {
-        $questionnaire = Questionnaire::with('questions.options')->findOrFail($id);
+{
+    $target = QuestionnaireTarget::findOrFail($id);
 
-        if (!$questionnaire->is_active) {
-            return redirect()->route('responder.questionnaires.index')
-                ->with('error', 'This questionnaire is no longer available.');
-        }
+    $questionnaire = Questionnaire::with('questions.options')
+        ->where('id', $target->questionnaire_id)
+        ->where('is_active', true)
+        ->firstOrFail();
 
-        return view('responder.questionnaire.show', compact('questionnaire'));
-    }
+    return view('responder.questionnaire.show', [
+        'questionnaire' => $questionnaire,
+        'targetId' => $target->id, 
+    ]);
+}
+
 
     public function submit(Request $request, $questionnaireId)
     {
         $validatedData = $request->validate([
-            'answers.*' => 'required',  
+            'answers.*' => 'required', 
+            'target_id' => 'required|exists:questionnaire_targets,id', 
         ]);
-
+        $targetId = $request->input('target_id');
         DB::beginTransaction();
 
         try {
             $response = Response::create([
-                'questionnaire_id' => $questionnaireId,
+                'questionnaire_target_id' => $targetId,
                 'user_id' => auth()->id(),
             ]);
 
@@ -89,92 +96,114 @@ class ResponderQuestionnaireController extends Controller
     {
         $user = auth()->user();
         $role = $user->getRoleNames()->first();
-
-        // Get both answered and available questionnaires
-        $answeredQuestionnaires = $this->getAnsweredQuestionnaires($user->id);
-        $availableQuestionnaires = $role === 'student' 
-            ? $this->getAvailableQuestionnaires($user->id)
-            : collect();
-
-        // Prepare the data for the view
-        $questionnaireData = [
-            'answered' => $answeredQuestionnaires->map(function ($questionnaire) {
-                return [
-                    'questionnaire' => $questionnaire,
-                    'status' => 'answered',
-                    'response_date' => $questionnaire->responses->where('user_id', auth()->id())->first()->created_at
-                ];
-            }),
-            'available' => $availableQuestionnaires->map(function ($questionnaire) {
-                return [
-                    'questionnaire' => $questionnaire,
-                    'status' => 'pending',
-                    'response_date' => null
-                ];
-            })
-        ];
-
-        Log::debug('Questionnaire Data:', $questionnaireData);
         
-        return view('responder.questionnaire.history', compact('questionnaireData'));
+        $availableQuestionnaires = $role === 'student' 
+            ? $this->getAvailableQuestionnaireTargets($user->id)
+            : collect();
+        
+        
+    
+        // Log the processed data for debugging purposes
+        Log::debug('Questionnaire Target Data:', $availableQuestionnaires);
+        
+        // Return the view
+        return view('responder.questionnaire.history', compact('availableQuestionnaires'));
     }
+    
+    
 
     
-    private function getAnsweredQuestionnaires($userId)
-    {
-        return Questionnaire::whereHas('responses', function ($query) use ($userId) {
-            $query->where('user_id', $userId);
-        })
-        ->with(['responses' => function ($query) use ($userId) {
-            $query->where('user_id', $userId);
-        }])
-        ->orderBy('end_date', 'desc')
-        ->get();
-    }
+
+
 
     
-    private function getAvailableQuestionnaires($userId)
+    private function getAvailableQuestionnaireTargets($userId)
     {
         $studentDetails = $this->getStudentDetails($userId);
         
-        if (!$studentDetails) {
-            return collect();
+        try {
+            $query = "
+    SELECT 
+        qt.*, 
+        q.title AS questionnaire_title, 
+        q.end_date AS questionnaire_end_date, 
+        q.start_date AS questionnaire_start_date,
+        c.name AS course_name  -- Add the course name from the courses table
+    FROM 
+        `questionnaire_targets` qt
+    JOIN 
+        `questionnaires` q ON qt.`questionnaire_id` = q.`id`
+    LEFT JOIN 
+        `course_details` cd ON qt.`course_detail_id` = cd.`id`  -- Corrected column name `course_detail_id`
+    LEFT JOIN 
+        `courses` c ON cd.`course_id` = c.`id`  -- Join the courses table for the course name
+    WHERE 
+        qt.`role_name` = 'student'
+        AND (
+            (
+                qt.`scope_type` = 'local'
+                AND (
+                    (qt.`faculty_id` = :faculty_id OR qt.`faculty_id` IS NULL)
+                    AND (qt.`dept_id` = :dept_id OR qt.`dept_id` IS NULL)
+                    AND (qt.`program_id` = :program_id OR qt.`program_id` IS NULL)
+                )
+            )
+            OR qt.`scope_type` = 'global'
+        )
+        AND (
+            -- Check if the questionnaire has a response from the user
+            EXISTS (
+                SELECT 1
+                FROM `responses` r
+                WHERE qt.`id` = r.`questionnaire_target_id`
+                AND r.`user_id` = :user_id
+            )
+            OR
+            -- OR the deadline has passed
+            q.`end_date` < NOW()
+        )
+        AND (
+            qt.`course_detail_id` IS NULL
+            OR EXISTS (
+                SELECT 1
+                FROM `course_enrollments` e
+                WHERE e.`student_id` = :student_detail_id
+                AND e.`course_detail_id` = qt.`course_detail_id`
+            )
+        )
+    LIMIT 0, 25;
+    ";
+    
+            $results = DB::select($query, [
+                'faculty_id' => $studentDetails->faculty_id,
+                'dept_id' => $studentDetails->department_id,
+                'program_id' => $studentDetails->program_id,
+                'user_id' => $userId,
+                'student_detail_id' => $studentDetails->id,
+            ]);
+    
+            // Add response_exists attribute to each result
+            foreach ($results as $result) {
+                // Check if the user has already responded
+                $result->response_exists = DB::table('responses')
+                                              ->where('questionnaire_target_id', $result->id)
+                                              ->where('user_id', $userId)
+                                              ->exists();
+            }
+    
+            return $results;
+    
+        } catch (\Exception $e) {
+            Log::error('Error getting targeted questionnaires: ' . $e->getMessage(), [
+                'user_id' => $userId,
+                'student_id' => $studentDetails->id,
+                'exception' => $e,
+            ]);
+    
+            throw $e;
         }
-
-        // Get all targeted questionnaires
-        $targetedQuestionnaires = Questionnaire::whereIn('id', function ($query) use ($studentDetails) {
-            $query->select('questionnaire_id')
-                ->from('questionnaire_targets')
-                ->where('role_name', 'student')
-                ->where(function ($subQuery) use ($studentDetails) {
-                    $subQuery->orWhere(function ($q) use ($studentDetails) {
-                        $q->where('scope_type', 'Local')
-                          ->where(function ($filter) use ($studentDetails) {
-                              $filter->where('faculty_id', $studentDetails->faculty_id)
-                                    ->orWhereNull('faculty_id');
-                          })
-                          ->where(function ($filter) use ($studentDetails) {
-                              $filter->where('dept_id', $studentDetails->department_id)
-                                    ->orWhereNull('dept_id');
-                          })
-                          ->where(function ($filter) use ($studentDetails) {
-                              $filter->where('program_id', $studentDetails->program_id)
-                                    ->orWhereNull('program_id');
-                          });
-                    });
-                    $subQuery->orWhere('scope_type', 'Global');
-                });
-        })
-        // Exclude questionnaires that have already been answered
-        ->whereDoesntHave('responses', function ($query) use ($userId) {
-            $query->where('user_id', $userId);
-        })
-        ->where('end_date', '<=', now())
-        ->orderBy('start_date', 'desc')
-        ->get();
-
-        return $targetedQuestionnaires;
     }
+    
 
     private function getStudentDetails($userId)
     {

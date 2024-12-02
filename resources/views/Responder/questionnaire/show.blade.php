@@ -116,6 +116,7 @@
 
     <form action="{{ route('responder.questionnaire.submit', $questionnaire->id) }}" method="POST">
         @csrf
+        <input type="hidden" name="target_id" value="{{ $targetId }}">
 
         @foreach($questionnaire->questions as $question)
             <div class="question-container">
@@ -176,7 +177,7 @@
             grid: true,
             from: 0,
             values: [
-                "ضعيف", "مقبول", "جيد", "جيد جداً", "ممتاز"
+                "ضعيف", "مقبول", "جيد", "جيد جدا", "ممتاز"
             ]
         });
     });

@@ -26,10 +26,11 @@
                         <div class="col-md-4 mb-4">
                             <div class="card shadow-sm">
                                 <div class="card-header bg-primary text-white">
-                                    <h6 class="mb-0 text-white">{{ $questionnaire->title }}</h6>
+                                    <h6 class="mb-0 text-white">{{ $questionnaire->questionnaire->title }}</h6>
+
                                 </div>
                                 <div class="card-body">
-                                    <p><strong>Description:</strong> {{ $questionnaire->description }}</p>
+                                    <p><strong>Course:</strong> {{ $questionnaire->courseDetail->course->name }}</p>
                                     <p><small><strong>Created At:</strong> {{ $questionnaire->created_at->format('d M Y') }}</small></p>
                                     <p><small><strong>Updated At:</strong> {{ $questionnaire->updated_at->format('d M Y') }}</small></p>
                                 </div>
