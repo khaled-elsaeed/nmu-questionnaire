@@ -17,6 +17,22 @@
       <link href="{{ asset('css/style.css') }}" rel="stylesheet" type="text/css">
       <!-- Load SweetAlert2 from CDN -->
       <script src="{{ asset('plugins/sweet-alert2/sweetalert2.all.min.js') }}"></script>
+      <style>
+         #togglePassword {
+            padding: 0.375rem 0.75rem;
+            font-size: 14px;
+            color: #8c2f39; /* Text color */
+            border: 1px solid #8c2f39; /* Border color */
+            background-color: transparent; /* Transparent background */
+         }
+
+         #togglePassword:hover {
+            background-color: #8c2f39; /* Background on hover */
+            color: white; /* Text color on hover */
+            border-color: #8c2f39; /* Border color on hover */
+         }
+
+      </style>
    </head>
    <body class="vertical-layout">
       <div id="containerbar" class="containerbar authenticate-bg">
@@ -68,10 +84,14 @@
                                     <input type="text" class="form-control text-secondary" id="floatingInput" name="identifier" placeholder="name@example.com" required>
                                     <label for="floatingInput">Email / National ID</label>
                                  </div>
-                                 <div class="form-floating mb-3">
+                                 <div class="form-floating mb-3 position-relative">
                                     <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password" required>
                                     <label for="floatingPassword">Password</label>
-                                 </div>
+                                    <button type="button" class="btn btn-outline-secondary position-absolute top-50 end-0 translate-middle-y me-2" id="togglePassword">
+                                        <span id="toggleText">Show</span>
+                                    </button>
+                                </div>
+                                
                                 
                                  <div class="d-grid mb-4">
                                     <button class="btn btn-primary font-18" type="submit">Log in</button>
@@ -99,6 +119,23 @@
       <!-- JavaScript Files -->
       <script src="{{ asset('js/jquery.min.js') }}"></script>
       <script src="{{ asset('js/popper.min.js') }}"></script>
-      <script src="{{ asset('js/bootstrap.bundle.js') }}"></script>
+      <script src="{{ asset('js/bootstrap.bundle.js') }}"></script>.
+
+      <!-- Show Password -->
+      <script>
+         document.getElementById('togglePassword').addEventListener('click', function () {
+             const passwordInput = document.getElementById('floatingPassword');
+             const toggleText = document.getElementById('toggleText');
+             
+             if (passwordInput.type === 'password') {
+                 passwordInput.type = 'text';
+                 toggleText.textContent = 'Hide';  // Change button text to 'Hide'
+             } else {
+                 passwordInput.type = 'password';
+                 toggleText.textContent = 'Show';  // Change button text back to 'Show'
+             }
+         });
+     </script>
+     
    </body>
 </html>
