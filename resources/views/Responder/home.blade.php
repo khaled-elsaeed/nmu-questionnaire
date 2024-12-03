@@ -17,60 +17,69 @@
 @section('content')
     <div class="container mt-4">
         <div class="row">
-            @foreach($questionnaires as $questionnaire)
+            @forelse($questionnaires as $target)
                 <div class="col-md-6 col-lg-4 col-xl-4 mb-4">
                     <div class="card shadow-sm border-light rounded transition-all hover:shadow-lg hover:scale-105">
                         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center p-3">
-                            <h5 class="card-title mb-0 font-weight-bold">{{ $questionnaire->title }}</h5>
+                            <h5 class="card-title mb-0 font-weight-bold">{{ $target->questionnaire_title ?? 'Survey' }}</h5>
                             <i class="fa fa-question-circle"></i>
                         </div>
 
                         <div class="card-body p-3">
                             <p class="card-text font-weight-light">
                                 <i class="fa fa-hourglass-start"></i> 
-                                <strong>Starts:</strong> {{ \Carbon\Carbon::parse($questionnaire->start_date)->format('d M, Y') }}
+                                <strong>Starts:</strong> {{ \Carbon\Carbon::parse($target->questionnaire_start_date)->format('d M, Y') }}
                             </p>
                             <p class="card-text font-weight-light">
                                 <i class="fa fa-hourglass-end"></i> 
-                                <strong>Ends:</strong> {{ \Carbon\Carbon::parse($questionnaire->end_date)->format('d M, Y') }}
+                                <strong>Ends:</strong> {{ \Carbon\Carbon::parse($target->questionnaire_end_date)->format('d M, Y') }}
+                            </p>
+                            <p class="card-text font-weight-light">
+                                <i class="fa fa-book"></i> 
+                                <strong>Course:</strong> 
+                                {{ $target->course_detail_id ? 'Course ID: ' . $target->course_detail_id : 'General Survey' }}
                             </p>
 
                             <div class="d-flex justify-content-end">
-                                <a href="{{ route('responder.questionnaire.show', $questionnaire->id) }}" class="btn btn-primary btn-sm">
+                                <a href="{{ route('responder.questionnaire.show', $target->id) }}" class="btn btn-primary btn-sm">
                                      Go To Questionnaire <i class="fa fa-arrow-right"></i>
                                 </a>
                             </div>
                         </div>
 
                         <div class="card-footer bg-secondary text-white p-2">
-                            <small><i class="fa fa-clock-o"></i> Remaining: <span id="countdown-{{ $questionnaire->id }}"></span></small>
+                            <small><i class="fa fa-clock-o"></i> Remaining: <span id="countdown-{{ $target->questionnaire_id }}"></span></small>
                         </div>
                     </div>
                 </div>
-            @endforeach
+            @empty
+                <div class="col-12">
+                    <p class="text-center text-muted">No questionnaires available at the moment.</p>
+                </div>
+            @endforelse
         </div>
     </div>
 @endsection
 
 @section('scripts')
     <script>
-        @foreach($questionnaires as $questionnaire)
-            let endDate = new Date("{{ \Carbon\Carbon::parse($questionnaire->end_date)->format('Y-m-d H:i:s') }}").getTime();
-            let countdownElement = document.getElementById('countdown-{{ $questionnaire->id }}');
+        @foreach($questionnaires as $target)
+            let endDate{{ $target->questionnaire_id }} = new Date("{{ \Carbon\Carbon::parse($target->questionnaire_end_date)->format('Y-m-d H:i:s') }}").getTime();
+            let countdownElement{{ $target->questionnaire_id }} = document.getElementById('countdown-{{ $target->questionnaire_id }}');
 
-            let x = setInterval(function() {
+            let x{{ $target->questionnaire_id }} = setInterval(function() {
                 let now = new Date().getTime();
-                let distance = endDate - now;
+                let timeRemaining = endDate{{ $target->questionnaire_id }} - now;
+                
+                let days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+                let hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                let minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
 
-                let days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                let hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                let minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                countdownElement{{ $target->questionnaire_id }}.innerHTML = `${days}d ${hours}h ${minutes}m`;
 
-                countdownElement.innerHTML = `${days}d ${hours}h ${minutes}m`;
-
-                if (distance < 0) {
-                    clearInterval(x);
-                    countdownElement.innerHTML = "EXPIRED";
+                if (timeRemaining < 0) {
+                    clearInterval(x{{ $target->questionnaire_id }});
+                    countdownElement{{ $target->questionnaire_id }}.innerHTML = "EXPIRED";
                 }
             }, 1000);
         @endforeach

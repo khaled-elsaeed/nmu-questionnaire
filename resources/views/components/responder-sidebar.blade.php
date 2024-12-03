@@ -15,14 +15,14 @@
         <ul class="vertical-menu">
 
             <li>
-                <a href="#">
+                <a href="{{ route('responder.home') }}">
                     <img src="{{ asset('images/svg-icon/form_elements.svg') }}" class="img-fluid" alt="questionnaires">
                     <span>Questionnaires</span>
                 </a>
             </li>
 
             <li>
-                <a href="#">
+                <a href="{{ route('responder.questionnaire.history') }}">
                     <img src="{{ asset('images/svg-icon/layouts.svg') }}" class="img-fluid" alt="results">
                     <span>History</span>
                 </a>

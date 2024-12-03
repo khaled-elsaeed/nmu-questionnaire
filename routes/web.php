@@ -49,6 +49,9 @@ Route::middleware(['auth'])->group(function () {
 
             Route::get('/create', [QuestionnairesController::class, 'create'])->name('create');
             Route::post('/store', [QuestionnairesController::class, 'store'])->name('store');
+            Route::get('/results', [QuestionnairesController::class, 'results'])->name('results');
+            Route::get('/{id}/stats', [QuestionnairesController::class, 'showStats'])->name('stats');
+
 
         });
 
@@ -78,9 +81,11 @@ Route::get('/departments/{id}/programs', [DepartmentsController::class, 'getProg
 Route::middleware(['auth'])->prefix('responder')->name('responder.')->group(function () {
     // Responder Home Route
     Route::get('/home', [ResponderHomeController::class, 'index'])->name('home');
+    Route::get('/questionnaire/history', [ResponderQuestionnaireController::class, 'history'])->name('questionnaire.history');
 
     // Responder Questionnaire Routes
     Route::get('/questionnaire/{id}', [ResponderQuestionnaireController::class, 'show'])->name('questionnaire.show');
     Route::post('/questionnaire/{id}/submit', [ResponderQuestionnaireController::class, 'submit'])->name('questionnaire.submit');
     Route::get('/questionnaire/{id}/completed', [ResponderQuestionnaireController::class, 'completed'])->name('questionnaire.completed');
+    
 });
