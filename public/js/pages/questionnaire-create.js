@@ -78,7 +78,7 @@
                     $('#selected-questions').append(`
                         <div class="accordion-item">
                             <h2 class="accordion-header" id="heading${index}">
-                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${index}" aria-expanded="true" aria-controls="collapse${index}">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse${index}" aria-expanded="true" aria-controls="collapse${index}" style="margin: 10px 0 10px 0;">
                                     ${question.text}
                                 </button>
                             </h2>
@@ -177,20 +177,19 @@
                 <div class="card-header" id="heading${facultyId}">
                     <h2 class="mb-0">
                         <button class="btn btn-link" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#collapse${facultyId}" aria-expanded="false"
-                            aria-controls="collapse${facultyId}">
+                            data-bs-target="#collapse-faculty-${facultyId}" aria-expanded="false"
+                            aria-controls="collapse-faculty-${facultyId}">
                             <i class="feather icon-award me-2"></i>${facultyData.facultyName}
                         </button>
                     </h2>
                 </div>
-                <div id="collapse${facultyId}" class="collapse" aria-labelledby="heading${facultyId}"
-                    data-parent="#facultyaccordionoutline">
+                <div id="collapse-faculty-${facultyId}" class="collapse" aria-labelledby="heading${facultyId}">
                     <div class="card-body">
                         ${facultyData.departments.map(department => {
                             return `
                                 <div class="department-card">
                                     <h6>${department.departmentName}</h6>
-                                    <div class="department-programs" id="programs-${facultyId}-${department.departmentId}">
+                                    <div class="department-programs" id="programs-${facultyId}-${department.departmentId}" style="margin: 10px 0 10px 0;">
                                         ${department.programs && department.programs.length > 0 ? `
                                             <ul>
                                                 ${department.programs.map(program => {
@@ -357,22 +356,67 @@
         console.log('Updated specificFaculties:', specificFaculties);
     });
 
-//---//
-    $('#save-specific-faculty-selections').on('click', function() {
-        console.log(specificFaculties);
-        populateFacultyAccordion();
+        $('#save-specific-faculty-selections').on('click', function () {
+            let isValid = true;
+            let errorMessage = '';
 
-        $('#faculty-dropdown').val('').prop('selected', true);
-        $('#department-checkboxes').empty();
-        $('#program-selection').empty();
-        $('#department-selection').hide();
-        $('#program-selection').hide();
+            // Check if a faculty is selected
+            const selectedFacultyId = $('#faculty-dropdown').val();
+            if (!selectedFacultyId) {
+                isValid = false;
+                errorMessage = 'Please select a faculty.';
+            }
 
-        $('#addSpecificFacultyModal').modal('hide');
-    });
-//---//
+            if (isValid) {
+                // Loop through each faculty to check if at least one department is selected
+                $('#faculty-dropdown').each(function () {
+                    const facultyId = $(this).val();
+                    if (!facultyId || !specificFaculties[facultyId]) {
+                        return; // Skip if no faculty is selected or faculty does not exist
+                    }
 
+                    const departmentCheckboxes = $(`#department-checkboxes input[name="faculty_${facultyId}_department[]"]:checked`);
 
+                    if (departmentCheckboxes.length === 0) {
+                        isValid = false;
+                        errorMessage = `Please select at least one department for ${specificFaculties[facultyId].facultyName}.`;
+                    } else {
+                        // Loop through each selected department and check if programs are selected
+                        departmentCheckboxes.each(function () {
+                            const departmentId = $(this).val();
+                            const programCheckboxes = $(`#program-checkboxes-${departmentId} input:checked`);
+
+                            if (programCheckboxes.length === 0) {
+                                isValid = false;
+                                errorMessage = `Please select at least one program for ${$(this).closest('.form-check').find('label').text()}.`;
+                            }
+                        });
+                    }
+                });
+            }
+
+            // If no selection is made or if a faculty is not selected, show the error message
+            if (!isValid) {
+                swal('Error!', errorMessage, 'error');
+            } else {
+                // Proceed with resetting the fields and closing the modal
+                console.log(specificFaculties);  // Debugging log
+                populateFacultyAccordion();  // Re-populate accordion
+
+                // Reset dropdowns and checkboxes
+                $('#faculty-dropdown').val('').prop('selected', true);
+                $('#department-checkboxes').empty();
+                $('#program-selection').empty();
+                $('#department-selection').hide();
+                $('#program-selection').hide();
+
+                // Hide the modal
+                $('#addSpecificFacultyModal').modal('hide');
+
+                // Optionally show success message
+                swal('Success!', 'Selections have been saved and form reset.', 'success');
+            }
+        });
 
 
 let specificCourses = {};
@@ -390,12 +434,18 @@ function populateCourseAccordion() {
             <div class="card-header" id="heading${courseId}">
                 <h2 class="mb-0">
                     <button class="btn btn-link" type="button" data-bs-toggle="collapse"
-                        data-bs-target="#collapse${courseId}" aria-expanded="false"
-                        aria-controls="collapse${courseId}">
+                        data-bs-target="#collapse-course-${courseId}" aria-expanded="false"
+                        aria-controls="collapse-course-${courseId}">
                         <i class="feather icon-award me-2"></i>${courseData.courseName}
                     </button>
                 </h2>
             </div>
+            <div id="collapse-course-${courseId}" class="collapse" aria-labelledby="heading${courseId}">
+                    <div class="card-body">
+                        <!-- You can add content here if required -->
+                        <p>Course details or other content here.</p>
+                    </div>
+                </div>
             
         </div>
     `;
@@ -419,11 +469,35 @@ $('#course-dropdown').on('change', function() {
 
 });
 
-$('#save-specific-course-selections').on('click', function() {
-        console.log(specificCourses);
-        populateCourseAccordion();
-        $('#addSpecificCourseModal').modal('hide');
-});
+        $('#save-specific-course-selections').on('click', function () {
+            let isValid = true;
+            let errorMessage = '';
+
+            // Check if a course is selected
+            const selectedCourseId = $('#course-dropdown').val();
+            if (!selectedCourseId) {
+                isValid = false;
+                errorMessage = 'Please select a course.';
+            }
+
+            // If no course is selected, show the error message
+            if (!isValid) {
+                swal('Error!', errorMessage, 'error');
+            } else {
+                // Proceed with resetting the fields and closing the modal
+                console.log(specificCourses);  // Debugging log
+                populateCourseAccordion();  // Re-populate accordion
+
+                // Reset the dropdowns
+                $('#course-dropdown').val('').prop('selected', true);
+
+                // Hide the modal
+                $('#addSpecificCourseModal').modal('hide');
+
+                // Optionally show success message
+                swal('Success!', 'Course selection has been saved and form reset.', 'success');
+            }
+        });
 
 
     function handleQuestionnaireSubmit(e) {

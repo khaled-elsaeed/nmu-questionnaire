@@ -61,6 +61,16 @@
             margin-left: 1rem;
         }
 
+        #accordionoutline, #facultyaccordionoutline, #courseaccordionoutline {
+            display: flex;
+            flex-wrap: wrap;  /* Allow the cards to wrap to the next line if there's not enough space */
+            gap: 20px;  /* Adjust the space between cards */
+        }
+
+        .card {
+            margin: 10px 0 10px 0;
+        }
+
         .form-control,
         .form-select {
             border: 1px solid #ced4da;
@@ -168,24 +178,17 @@
                                 <div id="facultyaccordionoutline" class="accordion">
 
                                 </div>
-                                <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                                    data-bs-target="#addSpecificFacultyModal">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSpecificFacultyModal" style="margin: 10px 0 10px 0;">
                                     Add Faculty
                                 </button>
 
                             </div>
                             <div id="specific-course-options" style="display: none; padding-left: 2rem;">
                                 <div id="courseaccordionoutline" class="accordion">
-
                                 </div>
-
-
-
-                                <button type="button" class="btn btn-primary" data-bs-toggle="modal"
-                                    data-bs-target="#addSpecificCourseModal">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSpecificCourseModal" style="margin: 10px 0 10px 0;">
                                     Add Course
                                 </button>
-
                             </div>
 
                         </div>
@@ -235,19 +238,19 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="faculty-dropdown">Select Faculty</label>
-                        <select class="form-select" id="faculty-dropdown" name="course">
+                        <select class="form-select" id="faculty-dropdown" name="course" style="margin: 10px 0 10px 0;">
                             <option value="" selected disabled>Select a faculty</option>
                             @foreach ($faculties as $id => $name)
                                 <option value="{{ $id }}">{{ $name }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div id="department-selection" style="display:none;">
+                    <div id="department-selection" style="display:none; margin: 10px 0 10px 0;">
                         <h6>Select Departments</h6>
                         <div id="department-checkboxes">
                         </div>
                     </div>
-                    <div id="program-selection" style="display:none;">
+                    <div id="program-selection" style="display:none; margin: 10px 0 10px 0;" >
                         <h6>Select Programs</h6>
                     </div>
                 </div>

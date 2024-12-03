@@ -289,10 +289,26 @@ public function update(Request $request, $id)
 }
 
 public function destroy($id)
-{
-    Questionnaire::destroy($id);
-    return response()->noContent();
-}
+    {
+        // Find the questionnaire by ID
+        $questionnaire = Questionnaire::find($id);
+
+        // Check if the questionnaire exists
+        if (!$questionnaire) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Questionnaire not found'
+            ]);
+        }
+
+        // Delete the questionnaire
+        $questionnaire->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Questionnaire deleted successfully'
+        ]);
+    }
 
 
 

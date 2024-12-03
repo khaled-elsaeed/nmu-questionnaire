@@ -124,7 +124,11 @@
 @endsection
 
 @section('scripts')
+<script src="{{ asset('plugins/sweet-alert2/sweetalert2.js') }}"></script>
+<script src="{{ asset('plugins/sweet-alert2/sweetalert2.all.min.js') }}"></script>
+<script src="{{ asset('plugins/sweet-alert2/sweetalert2.common.js') }}"></script>
 <script src="{{ asset('plugins/sweet-alert2/sweetalert2.min.js') }}"></script>
+
 <script>
     $(document).ready(function() {
         let questionCount = 1; // Start with the first question
@@ -223,7 +227,7 @@
             let isValid = true;
 
             // Validate required fields
-            for (let i = 1; i <= questionCount; i++) { // Start from 1 as questionCount starts from 1
+            for (let i = 1; i <= questionCount; i++) {
                 const questionText = $(`#question_text_${i}`);
                 const questionType = $(`#question_type_${i}`);
                 const scaleTypeSelect = $(`#scale_type_${i}`);
@@ -243,7 +247,6 @@
                     questionType.removeClass('is-invalid');
                 }
 
-                // Check scale type if applicable
                 if (scaleTypeSelect.is(':visible') && scaleTypeSelect.val() === '') {
                     isValid = false;
                     scaleTypeSelect.addClass('is-invalid');
@@ -251,7 +254,6 @@
                     scaleTypeSelect.removeClass('is-invalid');
                 }
 
-                // Validate options for multiple choice if applicable
                 if (optionsContainer.is(':visible')) {
                     const optionInputs = optionsContainer.find('input[type="text"]');
                     optionInputs.each(function() {
@@ -266,12 +268,18 @@
             }
 
             if (!isValid) {
-                alert('Please fill in all required fields correctly.');
+                Swal.fire({
+                    title: 'Validation Error',
+                    text: 'Please fill in all required fields correctly.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
                 return; // Prevent form submission
             }
 
             // Proceed to submit form data via AJAX if valid
             const formData = new FormData(this);
+
             fetch(this.action, {
                 method: 'POST',
                 body: formData,
@@ -280,12 +288,32 @@
                 }
             }).then(response => {
                 if (response.ok) {
-                    alert("Module created successfully!");
-                    location.reload(); // Optionally reload to see new data
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Your module has successfully been created.',
+                        icon: 'success',
+                        showConfirmButton: false, // Hide the OK button
+                        timer: 2000 // Modal disappears after 2 seconds
+                    }).then(() => {
+                        location.reload(); // Reload the page after SweetAlert2 closes
+                    });
                 } else {
-                    alert("Error creating module.");
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'There was an error creating the module.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
                 }
-            }).catch(error => console.error('Error:', error));
+            }).catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'An unexpected error occurred.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            });
         });
     });
 </script>

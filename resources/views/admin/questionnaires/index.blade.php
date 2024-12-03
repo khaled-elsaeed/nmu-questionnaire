@@ -35,11 +35,11 @@
                                 View Questions
                             </a>
 
-                            <!-- Delete Module Form -->
-                            <form action="#" method="POST" style="display:inline;">
+                            <!-- Delete Questionnaire Form -->
+                            <form action="{{ route('admin.questionnaires.destroy', $questionnaire->id) }}" method="POST" style="display:inline;">
                                 @csrf
                                 @method('DELETE')
-                                <button type="button" class="btn btn-danger btn-sm delete-button" data-id="{{ $questionnaire->id }}">Delete Module</button>
+                                <button type="button" class="btn btn-danger btn-sm delete-button" data-id="{{ $questionnaire->id }}">Delete Questionnaire</button>
                             </form>
                         </div>
                     </div>
@@ -52,34 +52,63 @@
 @endsection
 
 @section('scripts')
+<script src="{{ asset('plugins/sweet-alert2/sweetalert2.min.js') }}"></script>
+<script src="{{ asset('plugins/sweet-alert2/sweetalert2.js') }}"></script>
+<script src="{{ asset('plugins/sweet-alert2/sweetalert2.all.min.js') }}"></script>
+<script src="{{ asset('plugins/sweet-alert2/sweetalert2.common.js') }}"></script>
+<script src="{{ asset('plugins/sweet-alert2/sweetalert2.min.js') }}"></script>
 <script>
     document.querySelectorAll('.delete-button').forEach(button => {
         button.addEventListener('click', function() {
             const form = this.closest('form');
             const questionnaireId = this.getAttribute('data-id');
 
-            if (confirm('Are you sure you want to delete this questionnaire? This action cannot be undone.')) {
-                fetch(form.action, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        _method: 'DELETE'
-                    }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        form.closest('.questionnaire-block').remove();
-                    } else {
-                        alert('An error occurred while deleting the questionnaire.');
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-            }
+            // SweetAlert2 confirmation modal
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'This action cannot be undone!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete it!',
+                cancelButtonText: 'No, cancel!',
+                reverseButtons: true
+            }).then(result => {
+                if (result.isConfirmed) {
+                    // Proceed with deletion
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            _method: 'DELETE'
+                        }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Deleted!',
+                                text: data.message,
+                                icon: 'success',
+                                showConfirmButton: false,
+                                timer: 2000
+                            }).then(() => {
+                                form.closest('.questionnaire-block').remove(); // Remove questionnaire block after 2 seconds
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error',
+                                text: 'An error occurred while deleting the questionnaire.',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                }
+            });
         });
     });
 </script>

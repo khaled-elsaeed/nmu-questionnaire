@@ -46,14 +46,16 @@ Route::middleware(['auth'])->group(function () {
 
         Route::prefix('questionnaires')->name('questionnaires.')->group(function () {
             Route::get('/', [QuestionnairesController::class, 'index'])->name('index');
-
+            
             Route::get('/create', [QuestionnairesController::class, 'create'])->name('create');
             Route::post('/store', [QuestionnairesController::class, 'store'])->name('store');
             Route::get('/results', [QuestionnairesController::class, 'results'])->name('results');
             Route::get('/{id}/stats', [QuestionnairesController::class, 'showStats'])->name('stats');
 
-
+            // Add the delete route here
+            Route::delete('/{id}', [QuestionnairesController::class, 'destroy'])->name('destroy');
         });
+
 
 
     });

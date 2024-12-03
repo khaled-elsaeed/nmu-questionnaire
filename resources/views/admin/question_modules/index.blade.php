@@ -52,35 +52,63 @@
 <!-- End col -->
 
 @section('scripts')
+<script src="{{ asset('plugins/sweet-alert2/sweetalert2.js') }}"></script>
+<script src="{{ asset('plugins/sweet-alert2/sweetalert2.all.min.js') }}"></script>
+<script src="{{ asset('plugins/sweet-alert2/sweetalert2.common.js') }}"></script>
+<script src="{{ asset('plugins/sweet-alert2/sweetalert2.min.js') }}"></script>
+
 <script>
     document.querySelectorAll('.delete-button').forEach(button => {
         button.addEventListener('click', function() {
             const form = this.closest('form');
             const moduleId = this.getAttribute('data-id');
 
-            if (confirm('Are you sure you want to delete this module? This action cannot be undone.')) {
-                fetch(form.action, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        _method: 'DELETE'
-                    }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        // Optionally, remove the module block from the DOM
-                        form.closest('.module-block').remove();
-                    } else {
-                        alert('An error occurred while deleting the module.');
-                    }
-                })
-                .catch(error => console.error('Error:', error));
-            }
+            // SweetAlert2 confirmation modal
+            Swal.fire({
+                title: 'Are you sure you want to delete this module?',
+                text: 'This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete module.',
+                cancelButtonText: 'No, cancel.',
+                reverseButtons: true
+            }).then(result => {
+                if (result.isConfirmed) {
+                    // Proceed with deletion
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            _method: 'DELETE'
+                        }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Deleted!',
+                                text: data.message,
+                                icon: 'success',
+                                showConfirmButton: false,
+                                timer: 2000
+                            }).then(() => {
+                                form.closest('.module-block').remove(); // Remove module block after 2 seconds
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error',
+                                text: 'An error occurred while deleting the module.',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                }
+            });
         });
     });
 </script>
