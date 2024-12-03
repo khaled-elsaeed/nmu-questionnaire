@@ -30,6 +30,11 @@ public function Questionnaire()
     return $this->belongsTo(Questionnaire::class);
 }
 
+public function courseEnrollments()
+{
+    return $this->hasMany(CourseEnrollment::class, 'course_detail_id', 'course_detail_id');
+}
+
 public function courseDetail()
 {
     return $this->belongsTo(CourseDetail::class);

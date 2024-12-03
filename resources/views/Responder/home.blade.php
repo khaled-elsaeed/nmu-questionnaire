@@ -21,23 +21,23 @@
                 <div class="col-md-6 col-lg-4 col-xl-4 mb-4">
                     <div class="card shadow-sm border-light rounded transition-all hover:shadow-lg hover:scale-105">
                         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center p-3">
-                            <h5 class="card-title mb-0 font-weight-bold">{{ $target->questionnaire_title ?? 'Survey' }}</h5>
+                            <h5 class="card-title mb-0 font-weight-bold">{{ $target->questionnaire->title ?? 'Survey' }}</h5>
                             <i class="fa fa-question-circle"></i>
                         </div>
 
                         <div class="card-body p-3">
                             <p class="card-text font-weight-light">
                                 <i class="fa fa-hourglass-start"></i> 
-                                <strong>Starts:</strong> {{ \Carbon\Carbon::parse($target->questionnaire_start_date)->format('d M, Y') }}
+                                <strong>Starts:</strong> {{ \Carbon\Carbon::parse($target->questionnaire->start_date)->format('d M, Y') }}
                             </p>
                             <p class="card-text font-weight-light">
                                 <i class="fa fa-hourglass-end"></i> 
-                                <strong>Ends:</strong> {{ \Carbon\Carbon::parse($target->questionnaire_end_date)->format('d M, Y') }}
+                                <strong>Ends:</strong> {{ \Carbon\Carbon::parse($target->questionnaire->end_date)->format('d M, Y') }}
                             </p>
                             <p class="card-text font-weight-light">
                                 <i class="fa fa-book"></i> 
                                 <strong>Course:</strong> 
-                                {{ $target->course_detail_id ? 'Course ID: ' . $target->course_detail_id : 'General Survey' }}
+                                {{ $target->courseDetail->course->name ?? 'general'  }}
                             </p>
 
                             <div class="d-flex justify-content-end">
@@ -64,7 +64,7 @@
 @section('scripts')
     <script>
         @foreach($questionnaires as $target)
-            let endDate{{ $target->questionnaire_id }} = new Date("{{ \Carbon\Carbon::parse($target->questionnaire_end_date)->format('Y-m-d H:i:s') }}").getTime();
+            let endDate{{ $target->questionnaire_id }} = new Date("{{ \Carbon\Carbon::parse($target->questionnaire->end_date)->format('Y-m-d H:i:s') }}").getTime();
             let countdownElement{{ $target->questionnaire_id }} = document.getElementById('countdown-{{ $target->questionnaire_id }}');
 
             let x{{ $target->questionnaire_id }} = setInterval(function() {

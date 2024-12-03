@@ -17,7 +17,7 @@
                             @endif
                             d-flex justify-content-between align-items-center p-3">
                             
-                            <h5 class="card-title mb-0 font-weight-bold">{{ $target->questionnaire_title }}</h5>
+                            <h5 class="card-title mb-0 font-weight-bold">{{ $target->questionnaire->title }}</h5>
                             
                             <span class="badge 
                                 @if($target->response_exists) 
@@ -37,34 +37,38 @@
                         <div class="card-body p-3">
                             <p class="card-text font-weight-light">
                                 <i class="fa fa-calendar-check"></i> 
-                                <strong>Start Date:</strong> {{ \Carbon\Carbon::parse($target->questionnaire_start_date)->format('d M, Y') }}
+                                <strong>Start Date:</strong> {{ \Carbon\Carbon::parse($target->questionnaire->start_date)->format('d M, Y') }}
                             </p>
                             <p class="card-text font-weight-light">
                                 <i class="fa fa-hourglass-end"></i> 
-                                <strong>End Date:</strong> {{ \Carbon\Carbon::parse($target->questionnaire_end_date)->format('d M, Y') }}
+                                <strong>End Date:</strong> {{ \Carbon\Carbon::parse($target->questionnaire->end_date)->format('d M, Y') }}
                             </p>
 
                             <p class="card-text font-weight-light">
                                 <i class="fa fa-book"></i> 
                                 <strong>Course:</strong> 
-                                {{ $target->course_name}}
+                                {{ $target->courseDetail->course->name}}
                             </p>
 
                             <div class="d-flex justify-content-end">
-                                <a href="{{ route('responder.questionnaire.show', $target->id) }}" class="btn 
-                                    @if($target->response_exists)
-                                        btn-success
-                                    @else
-                                        btn-secondary
-                                    @endif
-                                    btn-sm">
-                                    @if($target->response_exists) 
-                                        View Responses <i class="fa fa-arrow-right"></i>
-                                    @else 
-                                        View Expired <i class="fa fa-arrow-right"></i>
-                                    @endif
-                                </a>
-                            </div>
+    <a href="javascript:void(0)" 
+       class="btn 
+             @if($target->response_exists) 
+                btn-success disabled
+             @else 
+                btn-danger disabled
+             @endif 
+             btn-sm"
+       >
+       @if($target->response_exists) 
+            Completed <i class="fa fa-check"></i>
+       @else 
+            Expired <i class="fa fa-lock"></i>
+       @endif
+    </a>
+</div>
+
+
                         </div>
 
                         <div class="card-footer bg-light text-muted p-2">

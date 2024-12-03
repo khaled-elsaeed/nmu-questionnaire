@@ -6,12 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Course extends Model
 {
-    // CourseDetail.php
-// Course.php
-public function courseDetails()
-{
-    return $this->hasMany(CourseDetail::class);
-}
+    public function courseDetails()
+    {
+        return $this->hasMany(CourseDetail::class, 'course_id');
+    }
 
 
 }
