@@ -65,7 +65,7 @@
 
             // SweetAlert2 confirmation modal
             Swal.fire({
-                title: 'Are you sure?',
+                title: 'Are you sure you want to delete this questionnaire?',
                 text: 'This action cannot be undone!',
                 icon: 'warning',
                 showCancelButton: true,
