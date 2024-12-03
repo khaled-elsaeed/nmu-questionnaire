@@ -4,6 +4,7 @@
 
 @section('links')
 <link rel="stylesheet" href="{{ asset('plugins/ion-rangeSlider/ion.rangeSlider.css') }}">
+<link href="{{ asset('plugins/sweet-alert2/sweetalert2.min.css') }}" rel="stylesheet" type="text/css" />
 
 <style>
     .title-card {
@@ -158,8 +159,10 @@
 
 @section('scripts')
 <script src="{{ asset('plugins/ion-rangeSlider/ion.rangeSlider.min.js') }}"></script>
+<script src="{{ asset('plugins/sweet-alert2/sweetalert2.min.js') }}"></script>
 
 <script>
+    // Initialize range sliders
     document.querySelectorAll('#range-slider-own-numbers').forEach(function(slider) {
         $(slider).ionRangeSlider({
             type: "single",
@@ -171,7 +174,6 @@
         });
     });
 
-
     document.querySelectorAll('#range-slider-string-value').forEach(function(slider) {
         $(slider).ionRangeSlider({
             grid: true,
@@ -182,6 +184,42 @@
         });
     });
 
+    $(document).on('submit', 'form', function(event) {
+    event.preventDefault(); // Prevent default form submission
+
+    let form = $(this);
+    let url = form.attr('action');
+    let data = form.serialize(); // Serialize the form data
+
+    $.ajax({
+        type: "POST",
+        url: url,
+        data: data,
+        success: function(response) {
+            if (response.success) {
+                swal({
+                    type: 'success',
+                    title: 'Submitted!',
+                    text: response.message || 'Your responses have been submitted successfully!',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    // Redirect to the responder's home page or refresh
+                    window.location.href = '{{ route("responder.home") }}';
+                });
+            }
+        },
+        error: function(xhr, status, error) {
+            let errorMessage = xhr.responseJSON?.message || 'An error occurred. Please try again.';
+            swal({
+                type: 'error',
+                title: 'Error!',
+                text: errorMessage,
+                confirmButtonText: 'OK'
+            });
+        }
+    });
+});
 
 </script>
 @endsection
+

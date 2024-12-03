@@ -189,94 +189,88 @@ public function store(Request $request)
     
 public function createQuestionnaireForCourse($course, $questionnaireId, $roleName, $level = null)
 {
-    // Log the start of the function
     Log::info('Creating questionnaire for course', [
-        'course_id' => $course['id'],
+        'course_id' => $course['id'] ?? 'unknown',
         'questionnaire_id' => $questionnaireId,
         'role_name' => $roleName,
         'level' => $level,
     ]);
 
-    if ($course['id'] === 'all') {
+    if (($course['id'] ?? null) === 'all') {
+        $courses = Course::whereHas('courseDetails', function ($query) {
+            $query->where('term', 'spring')
+                  ->where('academic_year', 2024);
+        })->get();
 
-        $courses = Course::all(); 
-
-        Log::info('Processing all courses for the questionnaire', [
-            'questionnaire_id' => $questionnaireId,
-            'role_name' => $roleName,
-            'level' => $level
-        ]);
-
-        foreach ($courses as $course) {
-
-            $courseDetail = CourseDetail::where('course_id', $course->id)->first(); 
+        foreach ($courses as $courseItem) {
+            $courseDetail = $courseItem->courseDetails()
+                ->where('term', 'spring')
+                ->where('academic_year', 2024)
+                ->first();
 
             if ($courseDetail) {
-                Log::info('Course detail found for all courses', [
-                    'course_id' => $course->id,
-                    'course_detail_id' => $courseDetail->id
-                ]);
+                try {
+                    QuestionnaireTarget::create([
+                        'questionnaire_id' => $questionnaireId,
+                        'faculty_id' => null,
+                        'dept_id' => null,
+                        'program_id' => null,
+                        'course_detail_id' => $courseDetail->id,
+                        'role_name' => $roleName,
+                        'level' => $level,
+                        'scope_type' => 'local',
+                    ]);
 
+                    Log::info('Questionnaire target created', [
+                        'questionnaire_id' => $questionnaireId,
+                        'course_detail_id' => $courseDetail->id,
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Failed to create questionnaire target', [
+                        'error' => $e->getMessage(),
+                        'course_detail_id' => $courseDetail->id,
+                    ]);
+                }
+            } else {
+                Log::warning('No course detail found for course', [
+                    'course_id' => $courseItem->id,
+                ]);
+            }
+        }
+    } else {
+        $courseDetail = CourseDetail::where('course_id', $course['id'] ?? null)->first();
+
+        if ($courseDetail) {
+            try {
                 QuestionnaireTarget::create([
                     'questionnaire_id' => $questionnaireId,
                     'faculty_id' => null,
                     'dept_id' => null,
                     'program_id' => null,
-                    'course_detail_id' => $courseDetail->id, 
-                    'role_name' => $roleName,
-                    'level' => $level,
-                    'scope_type' => 'local', 
-                ]);
-
-                Log::info('Questionnaire target created for course', [
-                    'questionnaire_id' => $questionnaireId,
                     'course_detail_id' => $courseDetail->id,
                     'role_name' => $roleName,
-                    'level' => $level
+                    'level' => $level,
+                    'scope_type' => 'local',
                 ]);
-            } else {
-                Log::error('Course detail not found for course', [
-                    'course_id' => $course->id
+
+                Log::info('Questionnaire target created for specific course', [
+                    'questionnaire_id' => $questionnaireId,
+                    'course_detail_id' => $courseDetail->id,
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Failed to create questionnaire target', [
+                    'error' => $e->getMessage(),
+                    'course_id' => $course['id'],
                 ]);
             }
-        }
-    } else {
-        // If the course ID is not 'all', process the specific course
-        $courseDetail = CourseDetail::where('course_id', $course['id'])->first(); 
-
-        // Log the course detail retrieval
-        if ($courseDetail) {
-            Log::info('Course detail found', [
-                'course_id' => $course['id'],
-                'course_detail_id' => $courseDetail->id
-            ]);
-
-            // Proceed to create the questionnaire target for the specific course
-            QuestionnaireTarget::create([
-                'questionnaire_id' => $questionnaireId,
-                'faculty_id' => null,
-                'dept_id' => null,
-                'program_id' => null,
-                'course_detail_id' => $courseDetail->id, // Now using the actual course detail ID
-                'role_name' => $roleName,
-                'level' => $level,
-                'scope_type' => 'local', // Courses are generally local scope
-            ]);
-
-            Log::info('Questionnaire target created for course', [
-                'questionnaire_id' => $questionnaireId,
-                'course_detail_id' => $courseDetail->id,
-                'role_name' => $roleName,
-                'level' => $level
-            ]);
         } else {
-            // Handle the case where the course detail does not exist
-            Log::error('Course detail not found for course', [
-                'course_id' => $course['id']
+            Log::error('No course detail found for specific course', [
+                'course_id' => $course['id'],
             ]);
         }
     }
 }
+
 
 
     
