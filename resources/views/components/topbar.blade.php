@@ -82,10 +82,12 @@
                                     <a href="#" class="profile-icon"><img src="{{ asset('images/svg-icon/email.svg') }}" class="img-fluid" alt="email">Email</a>
                                  </li>
                                  <li class="d-flex p-2 mt-1 dropdown-item">
-                                    <!-- Logout Link -->
-                                    <a href="javascript:void(0)" onclick="confirmLogout(event)" class="profile-icon">
+                                    <form action="{{ route('logout') }}" method="POST" id="logout-form">
+                                       @csrf
+                                       <button type="submit" class="profile-icon" style="border: none; background: none; cursor: pointer;">
                                        <img src="{{ asset('images/svg-icon/logout.svg') }}" class="img-fluid" alt="logout">Logout
-                                    </a>
+                                       </button>
+                                    </form>
                                  </li>
                               </ul>
                            </div>
@@ -101,41 +103,3 @@
    <!-- End row -->
 </div>
 <!-- End Topbar -->
-
-<script src="{{ asset('plugins/sweet-alert2/sweetalert2.js') }}"></script>
-<script src="{{ asset('plugins/sweet-alert2/sweetalert2.all.min.js') }}"></script>
-<script src="{{ asset('plugins/sweet-alert2/sweetalert2.common.js') }}"></script>
-<script src="{{ asset('plugins/sweet-alert2/sweetalert2.min.js') }}"></script>
-<script>
-    function confirmLogout(event) {
-        event.preventDefault(); // Prevent immediate form submission
-        
-        Swal.fire({
-            title: 'Are you sure you want to sign out?',
-            text: "You will be logged out of your account",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, log out!',
-            cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // After confirmation, submit the form
-                submitLogoutForm();
-            }
-        });
-    }
-
-    function submitLogoutForm() {
-        // Trigger the form submission
-        const logoutForm = document.getElementById('logout-form');
-        logoutForm.submit();
-    }
-</script>
-
-<form action="{{ route('logout') }}" method="POST" id="logout-form">
-   @csrf
-   <!-- This button is hidden and will be triggered by JavaScript -->
-   <button type="submit" style="display: none;"></button>
-</form>
