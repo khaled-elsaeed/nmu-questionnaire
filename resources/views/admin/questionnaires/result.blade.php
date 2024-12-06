@@ -68,8 +68,4 @@
 </div>
 @endsection
 
-@section('scripts')
-<script>
-    // No scripts needed now as the only action is for the "Show Stats" button.
-</script>
-@endsection
+
