@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('question_modules', function (Blueprint $table) {
             $table->id();
             $table->string('name')->notNullable();
-            $table->string('description')->notNullable();
+            $table->string('description')->Nullable();
             $table->timestamps();
         });
     }

@@ -1,122 +1,149 @@
 @extends('layouts.admin')
 
-@section('title', 'Questionnaire Stats')
-
 @section('content')
-<div class="col-lg-12">
-    <!-- Card for General Statistics -->
-    <div class="card m-b-30">
-        <div class="card-header bg-primary text-white">
-            <h5 class="card-title">{{ $questionnaireTarget->questionnaire->title }} - Overview</h5>
-        </div>
-        <div class="card-body">
-            <h5 class="mb-4">General Stats for Target: {{ $questionnaireTarget->name }}</h5>
+<!-- Back to Modules Button -->
+<div class="col-lg-12 mb-4">
+    <a href="{{ route('admin.questionnaires.results') }}" class="btn btn-primary btn-sm rounded-pill">
+        <i class="fa fa-arrow-left mr-2"></i> Back to results
+    </a>
+</div>
+<div class="container mt-5" style="direction: rtl; text-align: right;">
+    <h1 class="display-6 text-primary">الإحصائيات لهدف الاستبيان: {{ $questionnaire->Questionnaire->title }}</h1>
+    <h3>المادة: <span class="badge bg-secondary">{{ $questionnaire->CourseDetail->Course->name }}</span></h3>
+    <h3>الدكتور: <span class="badge bg-secondary">{{ $questionnaire->CourseDetail->teaching_assistant_name }}</span></h3>
 
-            @if($stats['total_responses'] == 0)
-                <div class="alert alert-secondary">No responses yet.</div>
-            @else
-                <ul class="list-group mb-4">
-                    <li class="list-group-item"><strong>Total Responses:</strong> {{ $stats['total_responses'] }}</li>
-                    <li class="list-group-item"><strong>Scaled Text Avg:</strong> 
-                        @php
-                            // Mapping the numeric average to the corresponding English description using mapArabicTextToEnglish
-                            $scaledTextAvg = $stats['scaled_text_avg'];
-                            $scaledTextAvgDescription = mapArabicTextToEnglish($scaledTextAvg);
-                        @endphp
-                        {{ $scaledTextAvgDescription }}
-                    </li>
+    <!-- Total Responses -->
+    <div class="mb-4">
+        <h3>إجمالي الردود: <span class="badge bg-secondary">{{ $stats['total_responses'] }}</span></h3>
+    </div>
 
-                    <li class="list-group-item"><strong>Scaled Numerical Avg:</strong> 
-                        {{ is_numeric($stats['scaled_numerical_avg']) ? number_format($stats['scaled_numerical_avg'], 2) : $stats['scaled_numerical_avg'] }}
-                    </li>
-                    <li class="list-group-item"><strong>Scale Average:</strong> 
-                        {{ is_numeric($stats['scale_avg']) ? number_format($stats['scale_avg'], 2) : $stats['scale_avg'] }}
-                    </li>
-                </ul>
-            @endif
+    <!-- Table for All Multiple Choice Questions -->
+    <div class="multiple-choice-section mb-5 p-3 border rounded shadow-sm">
+        <h3 class="text-secondary">إحصائيات الأسئلة متعددة الخيارات</h3>
+        
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>السؤال</th>
+                        <th colspan="{{ max(array_map(fn($q) => count($q['stats']['percentages']), $stats['questions']) ?? [0]) }}">النسب المئوية للإجابات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($stats['questions'] as $questionStats)
+                        @if($questionStats['type'] == 'multiple_choice' && $questionStats['stats'])
+                            <tr>
+                                <td>{{ $questionStats['text'] }}</td>
+                                @foreach($questionStats['stats']['percentages'] as $option => $percentage)
+                                    <td>{{ $option }} ( {{ $percentage }}%)</td>
+                                @endforeach
+                            </tr>
+                        @endif
+                    @endforeach
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Card for Individual Question Statistics -->
-    <div class="card m-b-30">
-        <div class="card-header bg-secondary text-white">
-            <h5 class="card-title">Question Stats for Target: {{ $questionnaireTarget->name }}</h5>
-        </div>
-        <div class="card-body">
-            @foreach($question_stats as $qStat)
-                <!-- Check if it's a text-based question and only display answers -->
-                @if($qStat['type'] === 'text_based')
-                    <div class="card mb-3">
-                        <div class="card-header bg-light">
-                            <strong>{{ $qStat['question'] }}</strong>
-                        </div>
-                        <div class="card-body">
-                            <ul class="list-group">
-                                <li class="list-group-item"><strong>Text-Based Answers:</strong>
-                                    <ul>
-                                        @foreach($qStat['stats']['text_based_answers'] as $answer)
-                                            <li>{{ $answer }}</li>
-                                        @endforeach
-                                    </ul>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                @else
-                    <!-- Skip stats for non-text-based questions -->
-                    <div class="card mb-3">
-                        <div class="card-header bg-light">
-                            <strong>{{ $qStat['question'] }}</strong>
-                        </div>
-                        <div class="card-body">
-                            <ul class="list-group">
-                                <li class="list-group-item"><strong>Total Responses:</strong> {{ $qStat['stats']['total_responses'] }}</li>
-                                <li class="list-group-item"><strong>Scaled Text Avg:</strong> 
-                                    @php
-                                        // Mapping the numeric average to the corresponding English description using mapArabicTextToEnglish
-                                        $scaledTextAvg = $qStat['stats']['scaled_text_avg'];
-                                        $scaledTextAvgDescription = mapArabicTextToEnglish($scaledTextAvg);
-                                    @endphp
-                                    {{ $scaledTextAvgDescription }}
-                                </li>
+    <!-- Other Questions -->
+    @foreach($stats['questions'] as $questionStats)
+        @if($questionStats['type'] != 'multiple_choice')
+            <div class="question-section mb-5 p-3 border rounded shadow-sm">
+                <h3 class="text-secondary">السؤال: {{ $questionStats['text'] }}</h3>
+                <p>النوع: <span class="text-muted">{{ ucfirst($questionStats['type']) }}</span></p>
 
-                                <li class="list-group-item"><strong>Scaled Numerical Avg:</strong> 
-                                    {{ is_numeric($qStat['stats']['scaled_numerical_avg']) ? number_format($qStat['stats']['scaled_numerical_avg'], 2) : $qStat['stats']['scaled_numerical_avg'] }}
-                                </li>
-                                <li class="list-group-item"><strong>Scale Average:</strong> 
-                                    {{ is_numeric($qStat['stats']['scale_avg']) ? number_format($qStat['stats']['scale_avg'], 2) : $qStat['stats']['scale_avg'] }}
-                                </li>
-                                <li class="list-group-item"><strong>Scaled Text Responses Breakdown:</strong>
-                                    @foreach($qStat['stats']['scaled_text_counts'] as $key => $count)
-                                        <span class="badge badge-info">{{ mapArabicTextToEnglish($key) }}: {{ $count }}</span>
-                                    @endforeach
-                                </li>
-                                <li class="list-group-item"><strong>Scaled Numerical Responses Breakdown:</strong>
-                                    @foreach($qStat['stats']['scaled_numerical_counts'] as $key => $count)
-                                        <span class="badge badge-info">{{ $key }}: {{ $count }}</span>
-                                    @endforeach
-                                </li>
-                            </ul>
-                        </div>
+                <!-- Text-Based Stats -->
+                @if($questionStats['type'] == 'text_based' && $questionStats['stats'])
+                    <h4 class="mt-3">إحصائيات الإجابات النصية</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>نص الإجابة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($questionStats['stats'] as $stat)
+                                    <tr>
+                                        <td>{{ $stat->answer_text }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
                 @endif
-            @endforeach
-        </div>
-    </div>
+
+                <!-- Scaled Text Stats -->
+                @if($questionStats['type'] == 'scaled_text' && $questionStats['stats'])
+                    <h4 class="mt-3">إحصائيات النصوص ذات النطاق</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>القيمة</th>
+                                    <th>عدد الإجابات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($questionStats['stats'] as $stat)
+                                    <tr>
+                                        <td>{{ $stat->scale_value }}</td>
+                                        <td>{{ $stat->count }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+
+                <!-- Scaled Numerical Stats -->
+                @if($questionStats['type'] == 'scaled_numerical' && $questionStats['stats'])
+                    <h4 class="mt-3">إحصائيات القيم الرقمية ذات النطاق</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>القيمة</th>
+                                    <th>عدد الإجابات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($questionStats['stats'] as $stat)
+                                    <tr>
+                                        <td>{{ $stat->value }}</td>
+                                        <td>{{ $stat->count }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+
+                <!-- Scale Stats -->
+                @if($questionStats['type'] == 'scale' && $questionStats['stats'])
+                    <h4 class="mt-3">إحصائيات النطاق</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>القيمة</th>
+                                    <th>عدد الإجابات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($questionStats['stats'] as $stat)
+                                    <tr>
+                                        <td>{{ $stat->scale_value }}</td>
+                                        <td>{{ $stat->count }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
+            </div>
+        @endif
+    @endforeach
 </div>
+
 @endsection
-
-@php
-    // Helper function to map Arabic scaled text answers to English descriptions
-    function mapArabicTextToEnglish($answer) {
-        $mapping = [
-            '1' => 'Bad',
-            '2' => 'Fair',
-            '3' => 'Good',
-            '4' => 'Very Good',
-            '5' => 'Excellent'
-        ];
-
-        return $mapping[$answer] ?? 'Unknown';  
-    }
-@endphp
