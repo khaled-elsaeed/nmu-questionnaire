@@ -44,11 +44,45 @@
                                 <strong>End Date:</strong> {{ \Carbon\Carbon::parse($target->questionnaire->end_date)->format('d M, Y') }}
                             </p>
 
-                            <p class="card-text font-weight-light">
-                                <i class="fa fa-book"></i> 
-                                <strong>Course:</strong> 
-                                {{ $target->courseDetail->course->name}}
-                            </p>
+                            @if(isset($target->courseDetail) && isset($target->courseDetail->course))
+    <p class="card-text font-weight-light">
+        <i class="fa fa-book"></i> 
+        <strong>Course:</strong> 
+        {{ $target->courseDetail->course->name }}
+    </p>
+@endif
+@if(isset($target->courseDetail) && isset($target->courseDetail->course))
+    <p class="card-text font-weight-light">
+        <i class="fa fa-book"></i> 
+        <strong>Course:</strong> 
+        {{ $target->courseDetail->course->name }}
+    </p>
+@endif
+
+@if(isset($target->faculty))
+    <p class="card-text font-weight-light">
+        <i class="fa fa-university"></i> 
+        <strong>Faculty:</strong> 
+        {{ $target->faculty->name }}
+    </p>
+@endif
+
+@if(isset($target->department))
+    <p class="card-text font-weight-light">
+        <i class="fa fa-building"></i> 
+        <strong>Department:</strong> 
+        {{ $target->department->name }}
+    </p>
+@endif
+
+@if(isset($target->program))
+    <p class="card-text font-weight-light">
+        <i class="fa fa-cogs"></i> 
+        <strong>Program:</strong> 
+        {{ $target->program->name }}
+    </p>
+@endif
+
 
                             <div class="d-flex justify-content-end">
     <a href="javascript:void(0)" 

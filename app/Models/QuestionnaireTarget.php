@@ -22,8 +22,9 @@ class QuestionnaireTarget extends Model
 
 public function responses()
 {
-    return $this->hasMany(Response::class, 'questionnaire_target_id');
+    return $this->hasMany(Response::class);
 }
+
 
 public function Questionnaire()
 {

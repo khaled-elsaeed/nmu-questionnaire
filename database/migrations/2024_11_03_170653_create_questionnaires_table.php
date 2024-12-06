@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('questionnaires', function (Blueprint $table) {
             $table->id();
             $table->string('title'); 
-            $table->text('description'); 
+            $table->text('description')->Nullable; 
             $table->date('start_date'); 
             $table->date('end_date'); 
             $table->boolean('is_active')->default(true); 

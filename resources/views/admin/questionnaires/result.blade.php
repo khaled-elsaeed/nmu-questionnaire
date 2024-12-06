@@ -30,7 +30,26 @@
 
                                 </div>
                                 <div class="card-body">
-                                    <p><strong>Course:</strong> {{ $questionnaire->courseDetail->course->name }}</p>
+                                    <!-- Course -->
+                                    @if(isset($questionnaire->courseDetail) && isset($questionnaire->courseDetail->course))
+                                        <p><strong>Course:</strong> {{ $questionnaire->courseDetail->course->name }}</p>
+                                    @endif
+
+                                    <!-- Faculty -->
+                                    @if(isset($questionnaire->courseDetail) && isset($questionnaire->courseDetail->course->faculty))
+                                        <p><strong>Faculty:</strong> {{ $questionnaire->courseDetail->course->faculty->name }}</p>
+                                    @endif
+
+                                    <!-- Department -->
+                                    @if(isset($questionnaire->courseDetail) && isset($questionnaire->courseDetail->course->department))
+                                        <p><strong>Department:</strong> {{ $questionnaire->courseDetail->course->department->name }}</p>
+                                    @endif
+
+                                    <!-- Program -->
+                                    @if(isset($questionnaire->courseDetail) && isset($questionnaire->courseDetail->course->program))
+                                        <p><strong>Program:</strong> {{ $questionnaire->courseDetail->course->program->name }}</p>
+                                    @endif
+
                                     <p><small><strong>Created At:</strong> {{ $questionnaire->created_at->format('d M Y') }}</small></p>
                                     <p><small><strong>Updated At:</strong> {{ $questionnaire->updated_at->format('d M Y') }}</small></p>
                                 </div>
@@ -49,8 +68,4 @@
 </div>
 @endsection
 
-@section('scripts')
-<script>
-    // No scripts needed now as the only action is for the "Show Stats" button.
-</script>
-@endsection
+
