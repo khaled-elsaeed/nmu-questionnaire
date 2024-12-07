@@ -26,7 +26,9 @@ class QuestionnairesController extends Controller
     public function index()
     {
         try {
-            $questionnaires = Questionnaire::get();
+            // In your controller
+            $questionnaires = Questionnaire::distinct()->get();
+
             return view('admin.questionnaires.index', compact('questionnaires'));
         } catch (\Exception $exception) {
             Log::error('Failed to retrieve questionnaires in index method: ' . $exception->getMessage());

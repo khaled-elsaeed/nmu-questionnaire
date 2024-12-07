@@ -6,12 +6,11 @@ use App\Models\Questionnaire;
 use App\Models\StudentDetail;
 use App\Models\QuestionnaireTarget;
 use App\Models\courseEnrollments;
-
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 
 class ResponderHomeController extends Controller
 {
@@ -77,6 +76,7 @@ public function getTargetedQuestionnaires($studentDetails, $userId)
             ->whereHas('questionnaire', function ($query) {
                 $query->where('end_date', '>', now());
             })
+            ->distinct() // Ensure unique results
             ->take(25)
             ->get();
 
@@ -97,9 +97,5 @@ public function getTargetedQuestionnaires($studentDetails, $userId)
 
         throw $e;
     }
-}
-
-    
-
-    
+}   
 }

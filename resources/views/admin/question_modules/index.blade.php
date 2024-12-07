@@ -12,33 +12,35 @@
     @if($modules->isEmpty())
         <p>No modules available.</p>
     @else
-        <div class="d-flex flex-wrap justify-content-start">
+        <div class="row">
             @foreach ($modules as $module)
-                <div class="card border shadow-sm mx-2 mb-4" style="max-width: 350px;">
-                    <div class="card-header bg-primary">
-                        <!-- Question Icon + Module Title -->
-                        <h6 class="mb-0 text-white">
-                            <i class="fa fa-question-circle mr-2"></i> <!-- Question Icon -->
-                            {{ $module->name }}
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <p><strong>Description:</strong> {{ $module->description }}</p>
-                        <p><small><strong>Created At:</strong> {{ $module->created_at->format('d M Y') }}</small></p>
-                        <p><small><strong>Updated At:</strong> {{ $module->updated_at->format('d M Y') }}</small></p>
-                    </div>
-                    <div class="card-footer text-right">
-                        <a href="{{ route('admin.question-modules.module', $module->id) }}" class="btn btn-primary btn-sm rounded-pill">
-                            <i class="fa fa-eye"></i> View Questions
-                        </a>
-                        <!-- Delete Module Form -->
-                        <form action="{{ route('admin.question-modules.destroy', $module->id) }}" method="POST" style="display:inline;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="button" class="btn btn-danger btn-sm rounded-pill delete-button" data-id="{{ $module->id }}">
-                                <i class="fa fa-trash-alt"></i> Delete Module
-                            </button>
-                        </form>
+                <div class="col-md-4 mb-4"> <!-- Adjust column width (4 for 3 per row) -->
+                    <div class="card border shadow-sm h-100">
+                        <div class="card-header bg-primary">
+                            <!-- Module Title -->
+                            <h6 class="mb-0 text-white">
+                                <i class="fa fa-question-circle mr-2"></i> <!-- Question Icon -->
+                                {{ $module->name }}
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Description:</strong> {{ $module->description }}</p>
+                            <p><small><strong>Created At:</strong> {{ $module->created_at->format('d M Y') }}</small></p>
+                            <p><small><strong>Updated At:</strong> {{ $module->updated_at->format('d M Y') }}</small></p>
+                        </div>
+                        <div class="card-footer text-right">
+                            <a href="{{ route('admin.question-modules.module', $module->id) }}" class="btn btn-primary btn-sm rounded-pill">
+                                <i class="fa fa-eye"></i> View Questions
+                            </a>
+                            <!-- Delete Module Form -->
+                            <form action="{{ route('admin.question-modules.destroy', $module->id) }}" method="POST" style="display:inline;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="button" class="btn btn-danger btn-sm rounded-pill delete-button" data-id="{{ $module->id }}">
+                                    <i class="fa fa-trash-alt"></i> Delete Module
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             @endforeach
@@ -64,6 +66,7 @@
                 showCancelButton: true,
                 confirmButtonText: 'Yes, delete it!',
                 cancelButtonText: 'Cancel',
+                timer: 5000, 
             }).then((result) => {
                     // Perform the delete action if confirmed
                     fetch(form.action, {
