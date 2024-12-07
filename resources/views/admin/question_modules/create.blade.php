@@ -76,6 +76,8 @@
                         <input type="text" class="form-control mb-2 option-input" data-index="${index}" data-option="1" placeholder="Option 2">
                         <input type="text" class="form-control mb-2 option-input" data-index="${index}" data-option="2" placeholder="Option 3">
                         <input type="text" class="form-control option-input" data-index="${index}" data-option="3" placeholder="Option 4">
+                        <input type="text" class="form-control option-input" data-index="${index}" data-option="4" placeholder="Option 5">
+
                     </div>
                     <div class="scale-container" id="scale-container-${index}" style="display: none;">
                         <label class="form-label">Scale Type</label>
