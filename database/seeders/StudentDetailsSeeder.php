@@ -31,6 +31,12 @@ class StudentDetailsSeeder extends Seeder
                 'username_ar' => 'student_ar3',
                 'password' => 'password123',
             ],
+            [
+                'email' => 'student4@example.com',
+                'username_en' => 'student_en4',
+                'username_ar' => 'student_ar4',
+                'password' => 'password123',
+            ],
         ];
 
         foreach ($students as $studentData) {

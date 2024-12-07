@@ -9,6 +9,8 @@ use Database\Seeders\RolesAndPermissionsSeeder;
 use Database\Seeders\UsersTableSeeder; 
 use Database\Seeders\FacultyDepartmentProgramSeeder; 
 use Database\Seeders\StudentDetailsSeeder; 
+use Database\Seeders\CoursesAndDetailsSeeder; 
+
  
 
 
@@ -23,7 +25,7 @@ class DatabaseSeeder extends Seeder
         $this->call(UsersTableSeeder::class);
         $this->call(FacultyDepartmentProgramSeeder::class);
         $this->call(StudentDetailsSeeder::class);
-
+        $this->call(CoursesAndDetailsSeeder::class);
 
     }
 }
