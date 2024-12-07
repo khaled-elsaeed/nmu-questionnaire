@@ -26,12 +26,12 @@
                 <thead class="table-light">
                     <tr>
                         <th>السؤال</th>
-                        <th colspan="{{ max(array_map(fn($q) => count($q['stats']['percentages']), $stats['questions']) ?? [0]) }}">النسب المئوية للإجابات</th>
+                        <th colspan="{{ max(array_map(fn($q) => isset($q['stats']['percentages']) ? count($q['stats']['percentages']) : 0, $stats['questions'])) }}">النسب المئوية للإجابات</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($stats['questions'] as $questionStats)
-                        @if($questionStats['type'] == 'multiple_choice' && $questionStats['stats'])
+                        @if($questionStats['type'] == 'multiple_choice' && isset($questionStats['stats']['percentages']))
                             <tr>
                                 <td>{{ $questionStats['text'] }}</td>
                                 @foreach($questionStats['stats']['percentages'] as $option => $percentage)
@@ -53,7 +53,7 @@
                 <p>النوع: <span class="text-muted">{{ ucfirst($questionStats['type']) }}</span></p>
 
                 <!-- Text-Based Stats -->
-                @if($questionStats['type'] == 'text_based' && $questionStats['stats'])
+                @if($questionStats['type'] == 'text_based' && isset($questionStats['stats']))
                     <h4 class="mt-3">إحصائيات الإجابات النصية</h4>
                     <div class="table-responsive">
                         <table class="table table-striped table-bordered table-hover">
@@ -74,7 +74,7 @@
                 @endif
 
                 <!-- Scaled Text Stats -->
-                @if($questionStats['type'] == 'scaled_text' && $questionStats['stats'])
+                @if($questionStats['type'] == 'scaled_text' && isset($questionStats['stats']))
                     <h4 class="mt-3">إحصائيات النصوص ذات النطاق</h4>
                     <div class="table-responsive">
                         <table class="table table-striped table-bordered table-hover">
@@ -97,7 +97,7 @@
                 @endif
 
                 <!-- Scaled Numerical Stats -->
-                @if($questionStats['type'] == 'scaled_numerical' && $questionStats['stats'])
+                @if($questionStats['type'] == 'scaled_numerical' && isset($questionStats['stats']))
                     <h4 class="mt-3">إحصائيات القيم الرقمية ذات النطاق</h4>
                     <div class="table-responsive">
                         <table class="table table-striped table-bordered table-hover">
@@ -120,7 +120,7 @@
                 @endif
 
                 <!-- Scale Stats -->
-                @if($questionStats['type'] == 'scale' && $questionStats['stats'])
+                @if($questionStats['type'] == 'scale' && isset($questionStats['stats']))
                     <h4 class="mt-3">إحصائيات النطاق</h4>
                     <div class="table-responsive">
                         <table class="table table-striped table-bordered table-hover">
