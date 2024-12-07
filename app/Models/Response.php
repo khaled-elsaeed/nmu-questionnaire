@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+
 
 class Response extends Model
 {
@@ -43,5 +45,20 @@ public function questionnaireTarget()
     {
         return $this->belongsTo(User::class);
     }
+
+    public function scopeByUser(Builder $query, $userId): Builder
+    {
+        return $query->where('user_id', $userId);
+    }
+
+    // Check if a user has responded to a specific questionnaire target
+    public static function hasUserResponded($userId, $targetId)
+    {
+        // Check if a response exists for the given user and target
+        return self::where('user_id', $userId)
+                   ->where('questionnaire_target_id', $targetId)
+                   ->exists();
+    }
 }
+
 

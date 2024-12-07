@@ -316,14 +316,11 @@ class QuestionnaireService
                 break;
         }
 
-        // Add the question with its stats to the stats array
         $stats['questions'][] = $questionStats;
 
-        // Log the progress after processing each question
         Log::info('Processed question ID: ' . $question->id . ' with type: ' . $question->type);
     }
 
-    // Log the final stats
     Log::info('Stats Calculation Complete:', $stats);
 
     $questionnaire = QuestionnaireTarget::where('id', $questionnaireTargetId)->first();
@@ -425,7 +422,6 @@ class QuestionnaireService
         return $result;
     }
     
-    // Scale-based statistics (e.g., 1, 2, 3, 4)
     private function calculateScaleStats($questionId, $questionnaireTargetId)
     {
         Log::info('Calculating Scale Stats for Question ID: ' . $questionId);
@@ -456,12 +452,10 @@ class QuestionnaireService
             ->where('question_id', $questionId)
             ->select('id', 'text')
             ->get()
-            ->keyBy('text'); // Key by option text for easier lookup later
+            ->keyBy('text'); 
     
-        // Log the options
         Log::info('Multiple Choice Options: ', $options->toArray());
     
-        // Count the answers for each option using INNER JOIN
         $answers = DB::table('options')
             ->join('answers', 'options.id', '=', 'answers.option_id')  
             ->join('responses', 'answers.response_id', '=', 'responses.id')  // INNER JOIN with responses
@@ -472,32 +466,26 @@ class QuestionnaireService
             ->pluck('option_count', 'option_text')
             ->toArray();
     
-        // Log the counts
         Log::info('Answered Multiple Choice Counts: ', $answers);
     
-        // Initialize counts and percentages for all options
         $counts = [];
         $percentages = [];
         $totalResponses = array_sum($answers);
     
-        // Populate the counts array with all options (including those with 0 counts)
         foreach ($options as $optionText => $option) {
             $counts[$optionText] = $answers[$optionText] ?? 0;
         }
     
-        // Calculate percentages, ensuring no division by zero
         if ($totalResponses > 0) {
             foreach ($counts as $optionText => $count) {
                 $percentages[$optionText] = round(($count / $totalResponses) * 100, 2);
             }
         } else {
-            // Set percentages to 0 if there are no total responses
             foreach ($counts as $optionText => $count) {
                 $percentages[$optionText] = 0;
             }
         }
     
-        // Log the final counts and percentages
         Log::info('Final Multiple Choice Counts with Zeroes: ', $counts);
         Log::info('Final Multiple Choice Percentages: ', $percentages);
     

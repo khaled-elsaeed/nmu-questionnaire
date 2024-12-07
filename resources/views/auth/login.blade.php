@@ -37,9 +37,9 @@
                                  @csrf
                                  @if (session('success'))
                                  <script>
-                                    Swal.fire({
+                                    swal({
                                         toast: true,
-                                        icon: 'success',
+                                        type: 'success',
                                         title: 'Success!',
                                         text: '{{ session('success') }}',
                                         position: 'top-start',  // Position the toast at the top-right
@@ -52,9 +52,9 @@
                                  <!-- SweetAlert for Validation Errors -->
                                  @if ($errors->any())
                                  <script>
-                                    Swal.fire({
+                                    swal({
                                         toast: true,
-                                        icon: 'error',
+                                        type: 'error',
                                         title: 'Error!',
                                         text: '{{ $errors->first() }}',
                                         position: 'top-start',  // Position the toast at the top-right
