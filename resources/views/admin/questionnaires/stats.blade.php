@@ -3,27 +3,35 @@
 @section('content')
 <!-- Back to Modules Button -->
 <div class="col-lg-12 mb-4">
-    <a href="{{ route('admin.questionnaires.results') }}" class="btn btn-primary btn-sm rounded-pill">
-        <i class="fa fa-arrow-left mr-2"></i> Back to results
+    <a href="{{ route('admin.questionnaires.results') }}" class="btn btn-primary btn-sm rounded-pill d-flex align-items-center">
+        <i class="fa fa-arrow-left me-2"></i> Back to results
     </a>
 </div>
+
 <div class="container mt-5" style="direction: rtl; text-align: right;">
     <h1 class="display-6 text-primary">الإحصائيات لهدف الاستبيان: {{ $questionnaire->Questionnaire->title }}</h1>
-    <h3>المادة: <span class="badge bg-secondary">{{ $questionnaire->CourseDetail->Course->name }}</span></h3>
-    <h3>الدكتور: <span class="badge bg-secondary">{{ $questionnaire->CourseDetail->teaching_assistant_name }}</span></h3>
+    <h3 class="mb-3">المادة: <span class="badge bg-secondary">{{ $questionnaire->CourseDetail->Course->name }}</span></h3>
+    <h3 class="mb-4">الدكتور: <span class="badge bg-secondary">{{ $questionnaire->CourseDetail->teaching_assistant_name }}</span></h3>
 
     <!-- Total Responses -->
     <div class="mb-4">
         <h3>إجمالي الردود: <span class="badge bg-secondary">{{ $stats['total_responses'] }}</span></h3>
     </div>
 
+    <!-- Print Button -->
+    <div class="mb-4">
+        <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="window.print()">
+            <i class="fa fa-print me-2"></i> طباعة الإحصائيات
+        </button>
+    </div>
+
     <!-- Table for All Multiple Choice Questions -->
-    <div class="multiple-choice-section mb-5 p-3 border rounded shadow-sm">
-        <h3 class="text-secondary">إحصائيات الأسئلة متعددة الخيارات</h3>
-        
+    <div class="multiple-choice-section mb-5 p-4 border rounded shadow-sm bg-light">
+        <h3 class="text-secondary mb-4">إحصائيات الأسئلة متعددة الخيارات</h3>
+
         <div class="table-responsive">
             <table class="table table-striped table-bordered table-hover">
-                <thead class="table-light">
+                <thead class="table-secondary">
                     <tr>
                         <th>السؤال</th>
                         <th colspan="{{ max(array_map(fn($q) => isset($q['stats']['percentages']) ? count($q['stats']['percentages']) : 0, $stats['questions'])) }}">النسب المئوية للإجابات</th>
@@ -35,7 +43,7 @@
                             <tr>
                                 <td>{{ $questionStats['text'] }}</td>
                                 @foreach($questionStats['stats']['percentages'] as $option => $percentage)
-                                    <td>{{ $option }} ( {{ $percentage }}%)</td>
+                                    <td>{{ $option }} ({{ $percentage }}%)</td>
                                 @endforeach
                             </tr>
                         @endif
@@ -48,7 +56,7 @@
     <!-- Other Questions -->
     @foreach($stats['questions'] as $questionStats)
         @if($questionStats['type'] != 'multiple_choice')
-            <div class="question-section mb-5 p-3 border rounded shadow-sm">
+            <div class="question-section mb-5 p-4 border rounded shadow-sm bg-light">
                 <h3 class="text-secondary">السؤال: {{ $questionStats['text'] }}</h3>
                 <p>النوع: <span class="text-muted">{{ ucfirst($questionStats['type']) }}</span></p>
 
@@ -57,7 +65,7 @@
                     <h4 class="mt-3">إحصائيات الإجابات النصية</h4>
                     <div class="table-responsive">
                         <table class="table table-striped table-bordered table-hover">
-                            <thead class="table-light">
+                            <thead class="table-secondary">
                                 <tr>
                                     <th>نص الإجابة</th>
                                 </tr>
@@ -78,7 +86,7 @@
                     <h4 class="mt-3">إحصائيات النصوص ذات النطاق</h4>
                     <div class="table-responsive">
                         <table class="table table-striped table-bordered table-hover">
-                            <thead class="table-light">
+                            <thead class="table-secondary">
                                 <tr>
                                     <th>القيمة</th>
                                     <th>عدد الإجابات</th>
@@ -101,7 +109,7 @@
                     <h4 class="mt-3">إحصائيات القيم الرقمية ذات النطاق</h4>
                     <div class="table-responsive">
                         <table class="table table-striped table-bordered table-hover">
-                            <thead class="table-light">
+                            <thead class="table-secondary">
                                 <tr>
                                     <th>القيمة</th>
                                     <th>عدد الإجابات</th>
@@ -124,7 +132,7 @@
                     <h4 class="mt-3">إحصائيات النطاق</h4>
                     <div class="table-responsive">
                         <table class="table table-striped table-bordered table-hover">
-                            <thead class="table-light">
+                            <thead class="table-secondary">
                                 <tr>
                                     <th>القيمة</th>
                                     <th>عدد الإجابات</th>
@@ -145,5 +153,4 @@
         @endif
     @endforeach
 </div>
-
 @endsection

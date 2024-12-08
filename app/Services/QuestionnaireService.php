@@ -444,57 +444,62 @@ class QuestionnaireService
     }
     
     private function calculateMultipleChoiceStats($questionId, $questionnaireTargetId)
-    {
-        Log::info('Calculating Multiple Choice Stats for Question ID: ' . $questionId);
-    
-        // Fetch all possible options for the question
-        $options = DB::table('options')
-            ->where('question_id', $questionId)
-            ->select('id', 'text')
-            ->get()
-            ->keyBy('text'); 
-    
-        Log::info('Multiple Choice Options: ', $options->toArray());
-    
-        $answers = DB::table('options')
-            ->join('answers', 'options.id', '=', 'answers.option_id')  
-            ->join('responses', 'answers.response_id', '=', 'responses.id')  // INNER JOIN with responses
-            ->where('options.question_id', $questionId)
-            ->where('responses.questionnaire_target_id', $questionnaireTargetId)
-            ->select('options.text as option_text', DB::raw('COUNT(answers.id) as option_count'))
-            ->groupBy('options.text')
-            ->pluck('option_count', 'option_text')
-            ->toArray();
-    
-        Log::info('Answered Multiple Choice Counts: ', $answers);
-    
-        $counts = [];
-        $percentages = [];
-        $totalResponses = array_sum($answers);
-    
-        foreach ($options as $optionText => $option) {
-            $counts[$optionText] = $answers[$optionText] ?? 0;
-        }
-    
-        if ($totalResponses > 0) {
-            foreach ($counts as $optionText => $count) {
-                $percentages[$optionText] = round(($count / $totalResponses) * 100, 2);
-            }
-        } else {
-            foreach ($counts as $optionText => $count) {
-                $percentages[$optionText] = 0;
-            }
-        }
-    
-        Log::info('Final Multiple Choice Counts with Zeroes: ', $counts);
-        Log::info('Final Multiple Choice Percentages: ', $percentages);
-    
-        return [
-            'total_responses' => $totalResponses,
-            'counts' => $counts,
-            'percentages' => $percentages,
-        ];
+{
+    Log::info('Calculating Multiple Choice Stats for Question ID: ' . $questionId);
+
+    // Fetch all possible options for the question in their database order
+    $options = DB::table('options')
+        ->where('question_id', $questionId)
+        ->orderBy('id') // Ensures options are fetched in their natural database order
+        ->select('id', 'text')
+        ->get()
+        ->keyBy('text');
+
+    Log::info('Multiple Choice Options: ', $options->toArray());
+
+    // Count the answers grouped by options
+    $answers = DB::table('options')
+        ->join('answers', 'options.id', '=', 'answers.option_id')
+        ->join('responses', 'answers.response_id', '=', 'responses.id') // INNER JOIN with responses
+        ->where('options.question_id', $questionId)
+        ->where('responses.questionnaire_target_id', $questionnaireTargetId)
+        ->select('options.text as option_text', DB::raw('COUNT(answers.id) as option_count'))
+        ->groupBy('options.text')
+        ->pluck('option_count', 'option_text')
+        ->toArray();
+
+    Log::info('Answered Multiple Choice Counts: ', $answers);
+
+    // Prepare the counts and percentages while preserving the database order
+    $counts = [];
+    $percentages = [];
+    $totalResponses = array_sum($answers);
+
+    foreach ($options as $optionText => $option) {
+        // Ensure all options are represented, even if not answered
+        $counts[$optionText] = $answers[$optionText] ?? 0;
     }
+
+    if ($totalResponses > 0) {
+        foreach ($counts as $optionText => $count) {
+            $percentages[$optionText] = round(($count / $totalResponses) * 100, 2);
+        }
+    } else {
+        foreach ($counts as $optionText => $count) {
+            $percentages[$optionText] = 0;
+        }
+    }
+
+    Log::info('Final Multiple Choice Counts with Zeroes: ', $counts);
+    Log::info('Final Multiple Choice Percentages: ', $percentages);
+
+    return [
+        'total_responses' => $totalResponses,
+        'counts' => $counts,
+        'percentages' => $percentages,
+    ];
+}
+
     
     
 

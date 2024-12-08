@@ -34396,6 +34396,42 @@ table.focus-on tfoot tr.focused td {
     width: 100%;
   }
 }
+/* Scoped Error Page Styling */
+.error-page .error-container {
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+  margin: 0 auto;
+}
+
+.error-page .error-logo {
+  width: 100px;
+  margin: 0 auto 20px;
+}
+
+.error-page .error-image {
+  width: 100%;
+  max-width: 350px;
+  margin: 20px auto;
+}
+
+.error-page .btn {
+  margin-top: 20px;
+  padding: 10px 30px;
+}
+
+/* Responsive Styling */
+@media (max-width: 768px) {
+  .error-page .error-image {
+      max-width: 250px;
+  }
+
+  .error-page .btn {
+      font-size: 14px;
+      padding: 10px 20px;
+  }
+}
+
 
 /*# sourceMappingURL=style.css.map */
 

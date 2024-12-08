@@ -6,8 +6,6 @@ use App\Models\Questionnaire;
 use App\Models\StudentDetail;
 use App\Models\QuestionnaireTarget;
 use App\Models\courseEnrollments;
-
-
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
@@ -17,13 +15,22 @@ class ResponderHomeController extends Controller
 {
     public function index()
     {
-        $user = auth()->user();
-        $role = $user->getRoleNames()->first();
+        try {
+            $user = auth()->user();
+            $role = $user->getRoleNames()->first();
 
-        $questionnaires = $role === 'student' ? $this->getQuestionnairesForStudent($user) : collect();
+            $questionnaires = $role === 'student' ? $this->getQuestionnairesForStudent($user) : collect();
 
-        return view('responder.home', compact('questionnaires'));
+            return view('responder.home', compact('questionnaires'));
+        } catch (\Throwable $e) {
+            // Log the error for debugging purposes
+            \Log::error('Error in ResponderController@index: ' . $e->getMessage());
+
+            // Return a custom error view
+            return response()->view('errors.500', [], 500);
+        }
     }
+
 
     private function getQuestionnairesForStudent($user)
     {
@@ -33,7 +40,7 @@ class ResponderHomeController extends Controller
             return collect();
         }
 
-        return $this->getTargetedQuestionnaires($studentDetails, $user->id);
+        return $this->getAvailableQuestionnaireTargets($studentDetails, $user->id);
     }
 
     private function getStudentDetails($user)
@@ -42,62 +49,38 @@ class ResponderHomeController extends Controller
     }
 
 
-public function getTargetedQuestionnaires($studentDetails, $userId)
-{
-    try {
-        $results = QuestionnaireTarget::with('questionnaire')
-            ->where('role_name', 'student')
-            ->where(function ($query) use ($studentDetails) {
-                $query->where('scope_type', 'global')
-                      ->orWhere(function ($query) use ($studentDetails) {
-                          $query->where('scope_type', 'local')
-                                ->where(function ($subQuery) use ($studentDetails) {
-                                    $subQuery->where('faculty_id', $studentDetails->faculty_id)
-                                             ->orWhereNull('faculty_id');
-                                })
-                                ->where(function ($subQuery) use ($studentDetails) {
-                                    $subQuery->where('dept_id', $studentDetails->department_id)
-                                             ->orWhereNull('dept_id');
-                                })
-                                ->where(function ($subQuery) use ($studentDetails) {
-                                    $subQuery->where('program_id', $studentDetails->program_id)
-                                             ->orWhereNull('program_id');
-                                });
-                      });
-            })
-            ->whereDoesntHave('responses', function ($query) use ($userId) {
-                $query->where('user_id', $userId);
-            })
-            ->where(function ($query) use ($studentDetails) {
-                $query->whereNull('course_detail_id')
-                      ->orWhereHas('courseEnrollments', function ($subQuery) use ($studentDetails) {
-                          $subQuery->where('student_id', $studentDetails->id);
-                      });
-            })
-            ->whereHas('questionnaire', function ($query) {
-                $query->where('end_date', '>', now());
-            })
-            ->take(25)
-            ->get();
 
-        Log::info('Targeted Questionnaires Retrieved:', [
-            'user_id' => $userId,
-            'student_id' => $studentDetails->id,
-            'questionnaires' => $results
-        ]);
+
+    public function getAvailableQuestionnaireTargets($studentDetails, $userId)
+    {
+
+        try {
+        
+                $results = QuestionnaireTarget::with(['questionnaire', 'courseDetail.course', 'responses' => function ($query) use ($userId) {
+                    $query->byUser($userId);
+                }])
+                ->forRole('student')
+                ->forGlobalOrLocalScope($studentDetails)
+                ->scopeWithActiveNotResponded($userId)  
+                ->forCourses($studentDetails)
+                ->limit(25)
+                ->get();
+            
+
+        } catch (\Exception $e) {
+            Log::error('Error getting available questionnaire targets', [
+                'exception' => $e,
+            ]);
+
+            throw $e;
+        }
+
+        $results->each(function ($result) use ($userId) {
+            $result->response_exists = $result->responses->contains('user_id', $userId);
+        });
 
         return $results;
-
-    } catch (\Exception $e) {
-        Log::error('Error getting targeted questionnaires: ' . $e->getMessage(), [
-            'user_id' => $userId,
-            'student_id' => $studentDetails->id,
-            'exception' => $e,
-        ]);
-
-        throw $e;
     }
-}
 
     
 
