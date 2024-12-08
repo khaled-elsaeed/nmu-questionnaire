@@ -9,7 +9,6 @@ class StudentDetail extends Model
     protected $fillable = [
         'user_id',
         'faculty_id',
-        'department_id',
         'program_id',
         'level',
     ];
@@ -25,10 +24,7 @@ public function faculty()
     return $this->belongsTo(Faculty::class);
 }
 
-public function department()
-{
-    return $this->belongsTo(Department::class);
-}
+
 
 public function program()
 {

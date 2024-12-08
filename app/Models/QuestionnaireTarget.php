@@ -10,7 +10,6 @@ class QuestionnaireTarget extends Model
 {
     protected $fillable = [
         'questionnaire_id',
-        'dept_id',
         'program_id',
         'faculty_id',
         'course_detail_id',
@@ -43,10 +42,6 @@ public function courseDetail()
     return $this->belongsTo(CourseDetail::class);
 }
 
-public function department()
-{
-    return $this->belongsTo(Department::class);
-}
 
 public function program()
 {
@@ -73,10 +68,7 @@ public function scopeForRole(Builder $query, string $role): Builder
                                 $subQuery->whereNull('faculty_id')
                                          ->orWhere('faculty_id', $studentDetails->faculty_id);
                             })
-                            ->where(function ($subQuery) use ($studentDetails) {
-                                $subQuery->whereNull('dept_id')
-                                         ->orWhere('dept_id', $studentDetails->department_id);
-                            })
+                            
                             ->where(function ($subQuery) use ($studentDetails) {
                                 $subQuery->whereNull('program_id')
                                          ->orWhere('program_id', $studentDetails->program_id);

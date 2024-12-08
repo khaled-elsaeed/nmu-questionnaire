@@ -58,12 +58,7 @@
                                 </p>
                             @endif
 
-                            @if($target->department)
-                                <p class="card-text font-weight-light">
-                                    <i class="fa fa-building"></i> 
-                                    <strong>Department:</strong> {{ $target->department->name }}
-                                </p>
-                            @endif
+                         
 
                             @if($target->program)
                                 <p class="card-text font-weight-light">

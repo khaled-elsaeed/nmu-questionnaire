@@ -7,9 +7,9 @@ use Illuminate\Http\Request;
 
 class FacultiesController extends Controller
 {
-    public function getDepartments($id)
+    public function getPrograms($id)
     {
-        $faculty = Faculty::with('departments')->find($id);
+        $faculty = Faculty::with('programs')->find($id);
 
 
         if (!$faculty) {
@@ -17,7 +17,7 @@ class FacultiesController extends Controller
         }
 
 
-        return response()->json($faculty->departments);
+        return response()->json($faculty->programs);
     }
 }
 

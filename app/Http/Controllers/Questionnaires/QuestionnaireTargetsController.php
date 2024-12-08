@@ -9,14 +9,13 @@ class QuestionnaireTargetsController extends Controller
 {
     public function index()
     {
-        return QuestionnaireTarget::with(['questionnaire', 'department', 'program', 'faculty'])->get();
+        return QuestionnaireTarget::with(['questionnaire', 'program', 'faculty'])->get();
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'questionnaire_id' => 'required|exists:questionnaires,id',
-            'dept_id' => 'nullable|exists:departments,id',
             'program_id' => 'nullable|exists:programs,id',
             'faculty_id' => 'nullable|exists:faculties,id',
             'role_name' => 'required|string|in:admin,student,teacher',
@@ -27,7 +26,7 @@ class QuestionnaireTargetsController extends Controller
 
     public function show($id)
     {
-        return QuestionnaireTarget::with(['questionnaire', 'department', 'program', 'faculty'])->findOrFail($id);
+        return QuestionnaireTarget::with(['questionnaire', 'program', 'faculty'])->findOrFail($id);
     }
 
     public function update(Request $request, $id)
