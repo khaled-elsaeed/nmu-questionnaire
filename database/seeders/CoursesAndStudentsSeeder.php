@@ -10,8 +10,12 @@ use App\Models\Faculty;
 use App\Models\Program;
 use App\Models\StudentDetail;
 use App\Models\User;
-use App\Models\CourseEnrollment; // Import the CourseEnrollment model
+use App\Models\CourseEnrollment;
 use Carbon\Carbon;
+use App\Notifications\SendLoginCredentials;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
+
 
 class CoursesAndStudentsSeeder extends Seeder
 {
@@ -52,6 +56,8 @@ class CoursesAndStudentsSeeder extends Seeder
 
             // Enroll the student in the course detail
             $this->enrollStudentInCourse($userId, $courseDetailId);  // Using user_id to get student_id
+
+
         }
     }
 
@@ -209,30 +215,72 @@ class CoursesAndStudentsSeeder extends Seeder
         return $userId;
     }
 
+
+    
     private function createUser(array $data)
     {
         $fullName = $data[8];  
-
+    
         $nameParts = explode(' ', $fullName);
-
+    
         $firstName = $nameParts[0]; 
         $lastName = end($nameParts);  
-
+    
+        // Create a username
         $username = strtolower($firstName . ' ' . $lastName);
-
-        // Create the user
+    
+        // Generate a strong password
+        $password = $this->generatePassword();
+    
+        // Hash the password before storing it
+        $hashedPassword = Hash::make($password['hashed']);
+    
+        // Create the user with hashed password
         $user = User::create([
             'email' => $data[13],  
             'username_en' => $username, 
-            'password' => bcrypt('password123'),  
+            'password' => $hashedPassword,  
             'is_active' => 1,  
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ]);
-
+    
+        $user->notify(new SendLoginCredentials($user->username_en, $user->email, $password['not_hashed']));
+    
         return $user->id;
     }
-
+    
+    private function generatePassword()
+    {
+        $password = Str::random(9); 
+    
+        
+        $password = $this->ensureStrongPassword($password);
+    
+        return [
+            'not_hashed' => $password, 
+            'hashed' => $password,     
+        ];
+    }
+    
+    private function ensureStrongPassword($password)
+    {
+        if (!preg_match('/[A-Z]/', $password)) {
+            $password .= Str::random(1); 
+        }
+        if (!preg_match('/[a-z]/', $password)) {
+            $password .= Str::random(1); 
+        }
+        if (!preg_match('/[0-9]/', $password)) {
+            $password .= Str::random(1);
+        }
+        if (!preg_match('/[\W_]/', $password)) {
+            $password .= Str::random(1);
+        }
+    
+        return $password;
+    }
+    
     private function getLevel(string $academicId): int
     {
         // Determine level based on the academic ID prefix
