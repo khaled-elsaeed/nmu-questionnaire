@@ -57,7 +57,7 @@ class ResponderQuestionnaireController extends Controller
     {
         // Sanitize and validate input
         $validatedData = $request->validate([
-            'answers.*' => 'required',
+'answers.*' => 'nullable',
             'target_id' => 'required|exists:questionnaire_targets,id',
         ]);
 
