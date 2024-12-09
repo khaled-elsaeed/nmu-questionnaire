@@ -21,7 +21,7 @@ class ResponderHomeController extends Controller
 
             $questionnaires = $role === 'student' ? $this->getQuestionnairesForStudent($user) : collect();
 
-            return view('responder.home', compact('questionnaires'));
+            return view('Responder.home', compact('questionnaires'));
         } catch (\Throwable $e) {
             \Log::error('Error in ResponderController@index: ' . $e->getMessage());
 
