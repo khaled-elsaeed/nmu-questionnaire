@@ -23,7 +23,6 @@ class ResponderHomeController extends Controller
 
             return view('responder.home', compact('questionnaires'));
         } catch (\Throwable $e) {
-            // Log the error for debugging purposes
             \Log::error('Error in ResponderController@index: ' . $e->getMessage());
 
             // Return a custom error view
