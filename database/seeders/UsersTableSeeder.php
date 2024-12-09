@@ -6,6 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use App\Models\User; 
+use Illuminate\Support\Facades\Hash;
 
 class UsersTableSeeder extends Seeder
 {
@@ -17,7 +18,7 @@ class UsersTableSeeder extends Seeder
         $user = User::create([
             'email' => 'khaled@gmail.com', 
             'username_en' => 'Khaled Zahran', 
-            'password' => bcrypt('password'), 
+            'password' => Hash::make('Admin123@@1a'), 
             'is_active' => true, 
             'profile_picture' => null, 
             'last_login' => now(), 

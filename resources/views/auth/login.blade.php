@@ -5,7 +5,7 @@
       <meta charset="UTF-8">
       <meta http-equiv="X-UA-Compatible" content="IE=edge">
       <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui">
-      <title>NMU Housing - Login</title>
+      <title>NMU Questionnaire - Login</title>
       <!-- Favicon -->
       <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/apple-touch-icon.png') }}">
       <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/favicon-32x32.png') }}">
@@ -15,8 +15,6 @@
       <link href="{{ asset('css/icons.css') }}" rel="stylesheet" type="text/css">
       <link rel="stylesheet" href="{{ asset('css/authenication.css') }}">
       <link href="{{ asset('css/style.css') }}" rel="stylesheet" type="text/css">
-      <!-- Load SweetAlert2 from CDN -->
-      <script src="{{ asset('plugins/sweet-alert2/sweetalert2.all.min.js') }}"></script>
    </head>
    <body class="vertical-layout">
       <div id="containerbar" class="containerbar authenticate-bg">
@@ -33,40 +31,27 @@
                                  </a>
                               </div>
                               <h4 class="text-primary mb-4">Welcome back 👋!</h4>
+                              
+                              <!-- Flash Messages -->
+                              @if (session('success'))
+                                 <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    <strong>Success!</strong> {{ session('success') }}
+                                    
+                                 </div>
+                              @endif
+
+                              @if ($errors->any())
+                                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <strong>Error!</strong> {{ $errors->first() }}
+                                    
+                                 </div>
+                              @endif
+
                               <form method="POST" action="{{ route('login') }}">
                                  @csrf
-                                 @if (session('success'))
-                                 <script>
-                                    swal({
-                                        toast: true,
-                                        type: 'success',
-                                        title: 'Success!',
-                                        text: '{{ session('success') }}',
-                                        position: 'top-start',  // Position the toast at the top-right
-                                        showConfirmButton: false,  // No confirmation button
-                                        timer: 8000,  // Auto-close after 3 seconds
-                                        timerProgressBar: true,  // Show progress bar
-                                    });
-                                 </script>
-                                 @endif
-                                 <!-- SweetAlert for Validation Errors -->
-                                 @if ($errors->any())
-                                 <script>
-                                    swal({
-                                        toast: true,
-                                        type: 'error',
-                                        title: 'Error!',
-                                        text: '{{ $errors->first() }}',
-                                        position: 'top-start',  // Position the toast at the top-right
-                                        showConfirmButton: false,  // No confirmation button
-                                        timer: 3000,  // Auto-close after 3 seconds
-                                        timerProgressBar: true,  // Show progress bar
-                                    });
-                                 </script>
-                                 @endif
                                  <div class="form-floating mb-3">
                                     <input type="text" class="form-control text-secondary" id="floatingInput" name="identifier" placeholder="name@example.com" required>
-                                    <label for="floatingInput">Email / National ID</label>
+                                    <label for="floatingInput">Email</label>
                                  </div>
                                  <div class="form-floating mb-3">
                                     <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password" required>

@@ -8,11 +8,12 @@ use App\Models\Course;
 use App\Models\CourseDetail;
 use App\Models\Faculty;
 use App\Models\Program;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\SendLoginCredentials;
 use App\Models\StudentDetail;
 use App\Models\User;
 use App\Models\CourseEnrollment;
 use Carbon\Carbon;
-use App\Notifications\SendLoginCredentials;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 
@@ -245,9 +246,13 @@ class CoursesAndStudentsSeeder extends Seeder
             'updated_at' => Carbon::now(),
         ]);
     
-        $user->notify(new SendLoginCredentials($user->username_en, $user->email, $password['not_hashed']));
-    
-        return $user->id;
+        try {
+
+            Mail::to($user->email)->send(new SendLoginCredentials($user->username_en, $user->email, $password['not_hashed']));
+        } catch (\Exception $e) {
+            \Log::error('Email sending failed: ' . $e->getMessage());
+        }
+                return $user->id;
     }
     
     private function generatePassword()
