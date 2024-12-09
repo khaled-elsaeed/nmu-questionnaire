@@ -42,7 +42,7 @@ class ResponderQuestionnaireController extends Controller
             ->firstOrFail();
     
         // Pass the user information along with questionnaire data to the view
-        return view('responder.questionnaire.show', [
+        return view('Responder.questionnaire.show', [
             'questionnaire' => $questionnaire,
             'targetId' => $target->id,
             'user' => $user,  // Passing the authenticated user to the view
@@ -135,7 +135,7 @@ class ResponderQuestionnaireController extends Controller
         // Get the available questionnaire targets based on the user, with the appropriate scope
         $availableQuestionnaires = $this->getAvailableQuestionnaireTargets($userId, true);
     
-        return view('responder.questionnaire.history', compact('availableQuestionnaires'));
+        return view('Responder.questionnaire.history', compact('availableQuestionnaires'));
     }
     
 
