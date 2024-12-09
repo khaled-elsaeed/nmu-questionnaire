@@ -36,7 +36,7 @@ class CoursesAndStudentsSeeder extends Seeder
         $sheet = $spreadsheet->getActiveSheet();
 
         // Loop through each row in the sheet, starting from row 2 (skipping header)
-        foreach ($sheet->getRowIterator(1) as $row) {
+        foreach ($sheet->getRowIterator(2) as $row) {
             // Get data from the current row
             $data = $this->getRowData($row);
 
