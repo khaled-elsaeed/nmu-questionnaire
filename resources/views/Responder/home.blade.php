@@ -48,7 +48,7 @@
                         </div>
 
                         <div class="card-footer bg-secondary text-white p-2">
-                            <small><i class="fa fa-clock-o"></i> Remaining: <span id="countdown-{{ $target->questionnaire_id }}"></span></small>
+                            <small><i class="fa fa-clock-o"></i> Remaining: <span id="countdown-{{$target->id}}-{{ $target->questionnaire_id }}"></span></small>
                         </div>
                     </div>
                 </div>
@@ -64,24 +64,27 @@
 @section('scripts')
     <script>
         @foreach($questionnaires as $target)
-            let endDate{{ $target->questionnaire_id }} = new Date("{{ \Carbon\Carbon::parse($target->questionnaire->end_date)->format('Y-m-d H:i:s') }}").getTime();
-            let countdownElement{{ $target->questionnaire_id }} = document.getElementById('countdown-{{ $target->questionnaire_id }}');
+            (function() {
+                let endDate = new Date("{{ \Carbon\Carbon::parse($target->questionnaire->end_date)->format('Y-m-d H:i:s') }}").getTime();
+                let countdownElement = document.getElementById('countdown-{{$target->id}}-{{ $target->questionnaire_id }}');
 
-            let x{{ $target->questionnaire_id }} = setInterval(function() {
-                let now = new Date().getTime();
-                let timeRemaining = endDate{{ $target->questionnaire_id }} - now;
-                
-                let days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
-                let hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                let minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+                let interval = setInterval(function() {
+                    let now = new Date().getTime();
+                    let timeRemaining = endDate - now;
 
-                countdownElement{{ $target->questionnaire_id }}.innerHTML = `${days}d ${hours}h ${minutes}m`;
+                    let days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+                    let hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    let minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
 
-                if (timeRemaining < 0) {
-                    clearInterval(x{{ $target->questionnaire_id }});
-                    countdownElement{{ $target->questionnaire_id }}.innerHTML = "EXPIRED";
-                }
-            }, 1000);
+                    countdownElement.innerHTML = `${days}d ${hours}h ${minutes}m`;
+
+                    if (timeRemaining < 0) {
+                        clearInterval(interval);
+                        countdownElement.innerHTML = "EXPIRED";
+                    }
+                }, 1000);
+            })();
         @endforeach
     </script>
 @endsection
+

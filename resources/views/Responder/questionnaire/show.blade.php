@@ -135,7 +135,7 @@
                                 </div>
                             @endforeach
                         @elseif($question->type === 'text_based')
-                            <textarea name="answers[{{ $question->id }}]" rows="3" class="form-control" placeholder="أدخل إجابتك هنا..." required></textarea>
+                            <textarea name="answers[{{ $question->id }}]" rows="3" class="form-control" placeholder="أدخل إجابتك هنا..." ></textarea>
                         @elseif($question->type === 'scaled_numerical')
                             <label for="scale_{{ $question->id }}" class="form-label">اختر تقييماً(من 1 إلى 5):</label>
                             <input name="answers[{{ $question->id }}]" id="range-slider-own-numbers" data-question-id="{{ $question->id }}" required>

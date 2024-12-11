@@ -7,9 +7,8 @@ use App\Models\User;
 use Illuminate\Database\Seeder; 
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Database\Seeders\UsersTableSeeder; 
-use Database\Seeders\FacultyDepartmentProgramSeeder; 
-use Database\Seeders\StudentDetailsSeeder; 
-use Database\Seeders\CoursesAndDetailsSeeder; 
+use Database\Seeders\CoursesAndStudentsSeeder; 
+
 
  
 
@@ -23,9 +22,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(RolesAndPermissionsSeeder::class);
         $this->call(UsersTableSeeder::class);
-        $this->call(FacultyDepartmentProgramSeeder::class);
-        $this->call(StudentDetailsSeeder::class);
-        $this->call(CoursesAndDetailsSeeder::class);
+        $this->call(CoursesAndStudentsSeeder::class);
 
     }
 }

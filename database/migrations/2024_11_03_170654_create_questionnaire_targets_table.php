@@ -12,7 +12,6 @@ public function up(): void
     Schema::create('questionnaire_targets', function (Blueprint $table) {
         $table->id();
         $table->foreignId('questionnaire_id')->constrained('questionnaires')->onDelete('cascade');
-        $table->foreignId('dept_id')->nullable()->constrained('departments')->onDelete('cascade');
         $table->foreignId('program_id')->nullable()->constrained('programs')->onDelete('cascade');
         $table->foreignId('faculty_id')->nullable()->constrained('faculties')->onDelete('cascade');
         $table->foreignId('course_detail_id')->nullable()->constrained('course_details')->onDelete('cascade'); // Reference to course_details table

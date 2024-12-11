@@ -9,18 +9,18 @@ class ProgramsController extends Controller
 {
     public function index()
     {
-        return Program::with(['faculty', 'department'])->get();
+        return Program::with(['faculty'])->get();
     }
 
     public function store(Request $request)
     {
-        $request->validate(['name' => 'required|string', 'faculty_id' => 'required|exists:faculties,id', 'dept_id' => 'required|exists:departments,id']);
+        $request->validate(['name' => 'required|string', 'faculty_id' => 'required|exists:faculties,id']);
         return Program::create($request->all());
     }
 
     public function show($id)
     {
-        return Program::with(['faculty', 'department'])->findOrFail($id);
+        return Program::with(['faculty'])->findOrFail($id);
     }
 
     public function update(Request $request, $id)

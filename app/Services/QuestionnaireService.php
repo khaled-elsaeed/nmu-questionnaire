@@ -13,7 +13,9 @@ use Illuminate\Validation\ValidationException;
 class QuestionnaireService
 {
     public function store($request)
-    {
+{
+    try {
+        // Validation
         $request->validate([
             'title' => 'required|string|unique:questionnaires,title',
             'description' => 'nullable|string',
@@ -26,39 +28,48 @@ class QuestionnaireService
             'audience' => 'required|array|min:1',
         ]);
 
-        try {
-            DB::transaction(function () use ($request) {
-                Log::info('Sanitizing input data.', $request->only(['title', 'description', 'start_date', 'end_date', 'module_id']));
-                $sanitizedData = $this->sanitizeInput($request->only(['title', 'description', 'start_date', 'end_date', 'module_id']));
+        DB::transaction(function () use ($request) {
+            Log::info('Sanitizing input data.', $request->only(['title', 'description', 'start_date', 'end_date', 'module_id']));
+            $sanitizedData = $this->sanitizeInput($request->only(['title', 'description', 'start_date', 'end_date', 'module_id']));
 
-                $questionnaire = Questionnaire::create($sanitizedData);
+            $questionnaire = Questionnaire::create($sanitizedData);
 
-                $questionnaire->questions()->attach($request->questions, [
-                    'display_order' => 0,
-                    'is_mandatory' => false,
-                ]);
+            $questionnaire->questions()->attach($request->questions, [
+                'display_order' => 0,
+                'is_mandatory' => false,
+            ]);
 
-                $audiences = json_decode($request->input('audience_data'), true);
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    Log::error('Invalid JSON format in audience_data.');
-                    throw new \Exception("Invalid JSON format in audience_data");
-                }
+            $audiences = json_decode($request->input('audience_data'), true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                Log::error('Invalid JSON format in audience_data.');
+                throw new \Exception("Invalid JSON format in audience_data");
+            }
 
-                $this->processAudienceData($audiences, $questionnaire, $request);
-            });
+            $this->processAudienceData($audiences, $questionnaire, $request);
+        });
 
-            return response()->json(['success' => true], 200);
-        } catch (\Exception $e) {
-            Log::error('Error creating questionnaire: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return response()->json(
-                [
-                    'message' => 'There was an error creating the questionnaire. Please try again later.',
-                    'error' => $e->getMessage(),
-                ],
-                500
-            );
-        }
+        return response()->json(['success' => true], 200);
+
+    } catch (ValidationException $e) {
+        // Handling validation errors explicitly
+        Log::error('Validation error: ' . $e->getMessage(), ['errors' => $e->errors()]);
+        return response()->json([
+            'message' => 'Validation failed.',
+            'errors' => $e->errors(),
+        ], 422);
+    } catch (\Exception $e) {
+        // General exception handling
+        Log::error('Error creating questionnaire: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+        return response()->json(
+            [
+                'message' => 'There was an error creating the questionnaire. Please try again later.',
+                'error' => $e->getMessage(),
+            ],
+            500
+        );
     }
+}
+
 
     private function sanitizeInput(array $data)
     {
@@ -110,54 +121,67 @@ class QuestionnaireService
                 }
             }
 
-            if (empty($facultyData['departments'])) {
-                $this->createQuestionnaireTarget($questionnaire, $audience, $facultyId, null, null);
-            } else {
-                foreach ($facultyData['departments'] as $departmentData) {
-                    $this->processDepartments($departmentData, $facultyId, $questionnaire, $audience);
-                }
+            if (empty($facultyData['programs'])) {
+                $this->createQuestionnaireTarget($questionnaire, $audience, $facultyId, null,);
+            }else{
+                $this->createQuestionnaireTarget($questionnaire, $audience, $facultyId, $facultyData['programs']);
             }
+            
         }
     }
-    private function processDepartments($departmentData, $facultyId, $questionnaire, $audience)
-    {
-        $deptId = $departmentData['id'];
-
-        if (empty($departmentData['programs'])) {
-            $this->createQuestionnaireTarget($questionnaire, $audience, $facultyId, $deptId, null);
-        } else {
-            foreach ($departmentData['programs'] as $programData) {
-                $this->createQuestionnaireTarget($questionnaire, $audience, $facultyId, $deptId, $programData['id']);
-            }
-        }
-    }
+   
 
     private function processCourses($courses, $questionnaire, $audience)
     {
         foreach ($courses as $course) {
             if ($course['id'] === 'all') {
-                $courses = CourseDetail::all();
-                if ($courses->isEmpty()) {
-                    Log::error('No courses found for the "all" option', ['questionnaire_id' => $questionnaire->id]);
-                    throw new ValidationException("No courses found for the selected 'all' option.");
+                // Fetch all courses
+                $allCourses = CourseDetail::all();
+                
+                // Check if no courses are found
+                if ($allCourses->isEmpty()) {
+                    Log::error('No courses found for the "all" option', [
+                        'questionnaire_id' => $questionnaire->id
+                    ]);
+                    
+                    throw ValidationException::withMessages([
+                        'courses' => ['No courses found for the selected "all" option.']
+                    ]);
                 }
-                $this->createQuestionnaireForCourse($course, $questionnaire->id, $audience['role_name'], $audience['level'] ?? null);
+                
+                // Iterate over all courses to create questionnaires
+                foreach ($allCourses as $allCourse) {
+                    $this->createQuestionnaireForCourse(
+                        $allCourse,
+                        $questionnaire->id,
+                        $audience['role_name'],
+                        $audience['level'] ?? null
+                    );
+                }
             } elseif (isset($course['id'])) {
-                $this->createQuestionnaireForCourse($course, $questionnaire->id, $audience['role_name'], $audience['level'] ?? null);
+                // Handle individual courses
+                $this->createQuestionnaireForCourse(
+                    $course,
+                    $questionnaire->id,
+                    $audience['role_name'],
+                    $audience['level'] ?? null
+                );
             } else {
+                // Log an error if the course ID is missing
                 Log::error('Missing course ID for audience', [
-                    'audience' => json_encode($audience),
+                    'audience' => $audience,
+                    'questionnaire_id' => $questionnaire->id
                 ]);
             }
         }
     }
+    
 
     private function processGlobalScope($audience, $questionnaire)
     {
         QuestionnaireTarget::create([
             'questionnaire_id' => $questionnaire->id,
             'faculty_id' => null,
-            'dept_id' => null,
             'program_id' => null,
             'role_name' => $audience['role_name'],
             'level' => $audience['level'] ?? null,
@@ -165,12 +189,11 @@ class QuestionnaireService
         ]);
     }
 
-    private function createQuestionnaireTarget($questionnaire, $audience, $facultyId, $deptId, $programId)
+    private function createQuestionnaireTarget($questionnaire, $audience, $facultyId, $programId)
     {
         QuestionnaireTarget::create([
             'questionnaire_id' => $questionnaire->id,
             'faculty_id' => $facultyId,
-            'dept_id' => $deptId,
             'program_id' => $programId,
             'role_name' => $audience['role_name'],
             'level' => $audience['level'] ?? null,
@@ -182,7 +205,7 @@ class QuestionnaireService
     {
         if (($course['id'] ?? null) === 'all') {
             $courses = Course::whereHas('courseDetails', function ($query) {
-                $query->where('term', 'spring')->where('academic_year', 2024);
+                $query->where('term', 'spring')->where('academic_year', '2024/2024');
             })->get();
 
             if ($courses->isEmpty()) {
@@ -204,7 +227,6 @@ class QuestionnaireService
                         QuestionnaireTarget::create([
                             'questionnaire_id' => $questionnaireId,
                             'faculty_id' => null,
-                            'dept_id' => null,
                             'program_id' => null,
                             'course_detail_id' => $courseDetail->id,
                             'role_name' => $roleName,
@@ -231,7 +253,6 @@ class QuestionnaireService
                     QuestionnaireTarget::create([
                         'questionnaire_id' => $questionnaireId,
                         'faculty_id' => null,
-                        'dept_id' => null,
                         'program_id' => null,
                         'course_detail_id' => $courseDetail->id,
                         'role_name' => $roleName,
@@ -253,7 +274,7 @@ class QuestionnaireService
     }
 
 
-    public function showStats($questionnaireTargetId)
+   public function showStats($questionnaireTargetId)
 {
     // Log the initial questionnaireTargetId
     Log::info('Fetching stats for Questionnaire Target ID: ' . $questionnaireTargetId);
@@ -270,7 +291,11 @@ class QuestionnaireService
     $stats = [
         'total_responses' => $totalResponses,
         'questions' => [], // Store questions with stats here
+        'overall_average' => 0, // Placeholder for overall average
     ];
+
+    $totalScore = 0; // This will accumulate the total score for calculating overall average
+    $questionsCount = 0; // Counter for questions with calculable averages
 
     // Fetch all questions for the questionnaire target
     $questions = DB::table('questions')
@@ -299,26 +324,23 @@ class QuestionnaireService
                 $questionStats['stats'] = $this->calculateTextBasedStats($question->id, $questionnaireTargetId);
                 break;
 
-            case 'scaled_text':
-                $questionStats['stats'] = $this->calculateScaledTextStats($question->id, $questionnaireTargetId);
-                break;
-
-            case 'scaled_numerical':
-                $questionStats['stats'] = $this->calculateScaledNumericalStats($question->id, $questionnaireTargetId);
-                break;
-
-            case 'scale':
-                $questionStats['stats'] = $this->calculateScaleStats($question->id, $questionnaireTargetId);
-                break;
-
             case 'multiple_choice':
                 $questionStats['stats'] = $this->calculateMultipleChoiceStats($question->id, $questionnaireTargetId);
+                if (isset($questionStats['stats']['percentages'])) {
+                    $totalScore += array_sum($questionStats['stats']['percentages']); // Adding percentages as score
+                    $questionsCount++;
+                }
                 break;
         }
 
         $stats['questions'][] = $questionStats;
 
         Log::info('Processed question ID: ' . $question->id . ' with type: ' . $question->type);
+    }
+
+    // Calculate overall average (as the average of all question averages)
+    if ($questionsCount > 0) {
+        $stats['overall_average'] = round($totalScore / $questionsCount, 2); // Calculate average
     }
 
     Log::info('Stats Calculation Complete:', $stats);
@@ -330,7 +352,8 @@ class QuestionnaireService
 }
 
     
-    // Text-based statistics (e.g., free text answers)
+
+    
     private function calculateTextBasedStats($questionId, $questionnaireTargetId)
     {
         Log::info('Calculating Text-Based Stats for Question ID: ' . $questionId);
@@ -350,132 +373,45 @@ class QuestionnaireService
         return $result;
     }
     
-    private function calculateScaledTextStats($questionId, $questionnaireTargetId)
-    {
-        Log::info('Calculating Scaled Text Stats for Question ID: ' . $questionId);
-    
-        // Fetch answers
-        $answers = DB::table('answers')
-            ->join('responses', 'answers.response_id', '=', 'responses.id')
-            ->where('answers.question_id', $questionId)
-            ->where('responses.questionnaire_target_id', $questionnaireTargetId)
-            ->select('answers.answer_text')
-            ->get();
-    
-        // Log the raw answers
-        Log::info('Raw Scaled Text Answers: ', $answers->toArray());
-    
-        // Define text-to-numeric mapping
-        $textScale = [
-            'Bad' => 1,
-            'سيء' => 1,
-            'Fair' => 2,
-            'مقبول' => 2,
-            'Good' => 3,
-            'جيد' => 3,
-            'Very Good' => 4,
-            'جيد جدا' => 4,
-            'Excellent' => 5,
-            'ممتاز' => 5,
-        ];
-    
-        // Map answers to their numeric equivalents
-        $scaledAnswers = $answers->map(function ($answer) use ($textScale) {
-            return $textScale[$answer->answer_text] ?? 0; // Default to 0 if no match
-        });
-    
-        // Log the scaled answers
-        Log::info('Scaled Text Answers: ', $scaledAnswers->toArray());
-    
-        // Group by the numeric scale values and count occurrences
-        $groupedStats = $scaledAnswers->groupBy(function ($value) {
-            return $value; // Group by the numeric value (e.g., 1, 2, 3, etc.)
-        })->map(function ($group) {
-            return $group->count(); // Count the number of occurrences for each value
-        });
-    
-        // Log the grouped stats
-        Log::info('Grouped Scaled Text Stats: ', $groupedStats->toArray());
-    
-        return $groupedStats;
-    }
-    
-    // Scaled numerical statistics (e.g., 1, 2, 3, 4, etc.)
-    private function calculateScaledNumericalStats($questionId, $questionnaireTargetId)
-    {
-        Log::info('Calculating Scaled Numerical Stats for Question ID: ' . $questionId);
-    
-        $result = DB::table('answers')
-            ->join('responses', 'answers.response_id', '=', 'responses.id')
-            ->where('answers.question_id', $questionId)
-            ->where('responses.questionnaire_target_id', $questionnaireTargetId)
-            ->select('answer_text')
-            ->get()
-            ->pluck('answer_text')
-            ->map(function ($value) {
-                return (int) $value;
-            });
-    
-        // Log the scaled numerical result
-        Log::info('Scaled Numerical Stats Result: ', $result->toArray());
-    
-        return $result;
-    }
-    
-    private function calculateScaleStats($questionId, $questionnaireTargetId)
-    {
-        Log::info('Calculating Scale Stats for Question ID: ' . $questionId);
-    
-        $result = DB::table('answers')
-            ->join('responses', 'answers.response_id', '=', 'responses.id')
-            ->where('answers.question_id', $questionId)
-            ->where('responses.questionnaire_target_id', $questionnaireTargetId)
-            ->select('answer_text')
-            ->get()
-            ->pluck('answer_text')
-            ->map(function ($value) {
-                return (int) $value;
-            });
-    
-        // Log the scale stats result
-        Log::info('Scale Stats Result: ', $result->toArray());
-    
-        return $result;
-    }
+
     
     private function calculateMultipleChoiceStats($questionId, $questionnaireTargetId)
     {
         Log::info('Calculating Multiple Choice Stats for Question ID: ' . $questionId);
-    
-        // Fetch all possible options for the question
+
+        // Fetch all possible options for the question in their database order
         $options = DB::table('options')
             ->where('question_id', $questionId)
+            ->orderBy('id') // Ensures options are fetched in their natural database order
             ->select('id', 'text')
             ->get()
-            ->keyBy('text'); 
-    
+            ->keyBy('text');
+
         Log::info('Multiple Choice Options: ', $options->toArray());
-    
+
+        // Count the answers grouped by options
         $answers = DB::table('options')
-            ->join('answers', 'options.id', '=', 'answers.option_id')  
-            ->join('responses', 'answers.response_id', '=', 'responses.id')  // INNER JOIN with responses
+            ->join('answers', 'options.id', '=', 'answers.option_id')
+            ->join('responses', 'answers.response_id', '=', 'responses.id') // INNER JOIN with responses
             ->where('options.question_id', $questionId)
             ->where('responses.questionnaire_target_id', $questionnaireTargetId)
             ->select('options.text as option_text', DB::raw('COUNT(answers.id) as option_count'))
             ->groupBy('options.text')
             ->pluck('option_count', 'option_text')
             ->toArray();
-    
+
         Log::info('Answered Multiple Choice Counts: ', $answers);
-    
+
+        // Prepare the counts and percentages while preserving the database order
         $counts = [];
         $percentages = [];
         $totalResponses = array_sum($answers);
-    
+
         foreach ($options as $optionText => $option) {
+            // Ensure all options are represented, even if not answered
             $counts[$optionText] = $answers[$optionText] ?? 0;
         }
-    
+
         if ($totalResponses > 0) {
             foreach ($counts as $optionText => $count) {
                 $percentages[$optionText] = round(($count / $totalResponses) * 100, 2);
@@ -485,16 +421,17 @@ class QuestionnaireService
                 $percentages[$optionText] = 0;
             }
         }
-    
+
         Log::info('Final Multiple Choice Counts with Zeroes: ', $counts);
         Log::info('Final Multiple Choice Percentages: ', $percentages);
-    
+
         return [
             'total_responses' => $totalResponses,
             'counts' => $counts,
             'percentages' => $percentages,
         ];
     }
+
     
     
 
