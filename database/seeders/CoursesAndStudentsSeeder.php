@@ -142,7 +142,7 @@ class CoursesAndStudentsSeeder extends Seeder
                 'course_detail_id' => $courseDetail->id,
                 'role_name' => 'student',
                 'scope_type' => 'local',
-                'start' => now(), 
+                'start' => now(), // 
                 'end' => now()->addDays(7), 
                 'is_active' => true, 
                 'created_at' => now(),
