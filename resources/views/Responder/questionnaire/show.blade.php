@@ -115,11 +115,12 @@
 </div>
 
 
-    <form action="{{ route('responder.questionnaire.submit', $questionnaire->id) }}" method="POST">
-        @csrf
-        <input type="hidden" name="target_id" value="{{ $targetId }}">
+<form action="{{ route('responder.questionnaire.submit', $questionnaire->id) }}" method="POST">
+    @csrf
+    <input type="hidden" name="target_id" value="{{ $targetId }}">
 
-        @foreach($questionnaire->questions as $question)
+    @foreach($questionnaire->questions as $question)
+        @if($question->type !== 'text_based')
             <div class="question-container">
                 <div class="question-card">
                     <div class="card-body">
@@ -134,8 +135,6 @@
                                     </label>
                                 </div>
                             @endforeach
-                        @elseif($question->type === 'text_based')
-                            <textarea name="answers[{{ $question->id }}]" rows="3" class="form-control" placeholder="أدخل إجابتك هنا..." ></textarea>
                         @elseif($question->type === 'scaled_numerical')
                             <label for="scale_{{ $question->id }}" class="form-label">اختر تقييماً(من 1 إلى 5):</label>
                             <input name="answers[{{ $question->id }}]" id="range-slider-own-numbers" data-question-id="{{ $question->id }}" required>
@@ -146,14 +145,30 @@
                     </div>
                 </div>
             </div>
-        @endforeach
+        @endif
+    @endforeach
 
-        <div class="text-center">
-            <button type="submit" class="btn btn-primary btn-submit">
-                <i class="fa fa-check-circle"></i> Submit Answers
-            </button>
-        </div>
-    </form>
+    <!-- Text-based questions placed at the end -->
+    @foreach($questionnaire->questions as $question)
+        @if($question->type === 'text_based')
+            <div class="question-container">
+                <div class="question-card">
+                    <div class="card-body">
+                        <h5 class="question-text">{{ $loop->iteration }}. {{ $question->text }}</h5>
+                        <textarea name="answers[{{ $question->id }}]" rows="3" class="form-control" placeholder="أدخل إجابتك هنا..."></textarea>
+                    </div>
+                </div>
+            </div>
+        @endif
+    @endforeach
+
+    <div class="text-center">
+        <button type="submit" class="btn btn-primary btn-submit">
+            <i class="fa fa-check-circle"></i> Submit Answers
+        </button>
+    </div>
+</form>
+
 </div>
 @endsection
 
