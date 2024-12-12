@@ -77,6 +77,9 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/store', [QuestionnairesController::class, 'store'])->name('store');
             Route::get('/results', [QuestionnairesController::class, 'results'])->name('results');
             Route::get('/{id}/stats', [QuestionnairesController::class, 'showStats'])->name('stats');
+            Route::get('/{id}/generate-report', [QuestionnairesController::class, 'generateReport'])
+            ->name('generate-report');
+        
         });
     });
 

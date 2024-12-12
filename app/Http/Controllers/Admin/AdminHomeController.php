@@ -11,15 +11,19 @@ use Illuminate\Http\Request;
 class AdminHomeController extends Controller
 {
     public function showHomePage()
-    {
-        $totalQuestionnaires = Questionnaire::count();
+{
+    $totalQuestionnaires = Questionnaire::count();
 
-        $totalModules = QuestionModule::count();
+    $totalModules = QuestionModule::count();
 
-        $activeQuestionnaires = Questionnaire::where('is_active', '=','1')->count();
+    $activeQuestionnaires = Questionnaire::where('is_active', '=', 1)->count();
 
-        $totalResponses = Response::count();
+    $totalResponses = Response::count();
 
-        return view('admin.home', compact('totalQuestionnaires', 'totalModules', 'activeQuestionnaires', 'totalResponses'));
-    }
+    // Count unique student responses
+    $totalStudentResponses = Response::distinct('user_id')->count('user_id');
+
+    return view('admin.home', compact('totalQuestionnaires', 'totalModules', 'activeQuestionnaires', 'totalResponses', 'totalStudentResponses'));
+}
+
 }

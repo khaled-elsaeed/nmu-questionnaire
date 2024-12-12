@@ -28,11 +28,11 @@
                         <div class="card-body p-3">
                             <p class="card-text font-weight-light">
                                 <i class="fa fa-hourglass-start"></i> 
-                                <strong>Starts:</strong> {{ \Carbon\Carbon::parse($target->questionnaire->start_date)->format('d M, Y') }}
+                                <strong>Starts:</strong> {{ \Carbon\Carbon::parse($target->start)->format('d M, Y') }}
                             </p>
                             <p class="card-text font-weight-light">
                                 <i class="fa fa-hourglass-end"></i> 
-                                <strong>Ends:</strong> {{ \Carbon\Carbon::parse($target->questionnaire->end_date)->format('d M, Y') }}
+                                <strong>Ends:</strong> {{ \Carbon\Carbon::parse($target->end)->format('d M, Y') }}
                             </p>
                             <p class="card-text font-weight-light">
                                 <i class="fa fa-book"></i> 
@@ -65,7 +65,7 @@
     <script>
         @foreach($questionnaires as $target)
             (function() {
-                let endDate = new Date("{{ \Carbon\Carbon::parse($target->questionnaire->end_date)->format('Y-m-d H:i:s') }}").getTime();
+                let endDate = new Date("{{ \Carbon\Carbon::parse($target->end)->format('Y-m-d H:i:s') }}").getTime();
                 let countdownElement = document.getElementById('countdown-{{$target->id}}-{{ $target->questionnaire_id }}');
 
                 let interval = setInterval(function() {

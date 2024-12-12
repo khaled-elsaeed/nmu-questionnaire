@@ -37,11 +37,11 @@
                         <div class="card-body p-3">
                             <p class="card-text font-weight-light">
                                 <i class="fa fa-hourglass-start"></i> 
-                                <strong>Start Date:</strong> {{ \Carbon\Carbon::parse($target->questionnaire->start_date)->format('d M, Y') }}
+                                <strong>Start Date:</strong> {{ \Carbon\Carbon::parse($target->start)->format('d M, Y') }}
                             </p>
                             <p class="card-text font-weight-light">
                                 <i class="fa fa-hourglass-end"></i> 
-                                <strong>End Date:</strong> {{ \Carbon\Carbon::parse($target->questionnaire->end_date)->format('d M, Y') }}
+                                <strong>End Date:</strong> {{ \Carbon\Carbon::parse($target->end)->format('d M, Y') }}
                             </p>
 
                             @if($target->courseDetail && $target->courseDetail->course)

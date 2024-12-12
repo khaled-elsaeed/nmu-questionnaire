@@ -8,6 +8,13 @@
     </a>
 </div>
 
+<div class="col-lg-12 mb-4">
+    <a href="{{ route('admin.questionnaires.generate-report', ['id' => $questionnaire->id]) }}" class="btn btn-success btn-sm rounded-pill">
+        <i class="fa fa-download me-2"></i> إنشاء التقرير
+    </a>
+</div>
+
+
 <!-- Main Content Section -->
 <div class="container mt-5" style="direction: rtl; text-align: right;">
     <div class="row">
@@ -26,7 +33,6 @@
         </div>
     </div>
 
-  
     <!-- Multiple Choice Questions Stats Section -->
     <div class="row">
         <div class="col-12">

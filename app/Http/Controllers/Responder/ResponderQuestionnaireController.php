@@ -35,11 +35,15 @@ class ResponderQuestionnaireController extends Controller
             ], 403); // Forbidden
         }
     
-        // Retrieve the associated questionnaire, including its questions and options
-        $questionnaire = Questionnaire::with('questions.options')
+       
+
+            $questionnaire = Questionnaire::with(['questions.options' => function($query) {
+                $query->orderBy('question_id'); // Order options by question_id (if needed)
+            }])
             ->where('id', $target->questionnaire_id)
             ->where('is_active', true)
             ->firstOrFail();
+        
     
         // Pass the user information along with questionnaire data to the view
         return view('Responder.questionnaire.show', [
