@@ -270,12 +270,12 @@ class CoursesAndStudentsSeeder extends Seeder
             'updated_at' => Carbon::now(),
         ]);
     
-        // try {
+        try {
 
-        //     Mail::to($user->email)->send(new SendLoginCredentials($user->username_en, $user->email, $password['not_hashed']));
-        // } catch (\Exception $e) {
-        //     \Log::error('Email sending failed: ' . $e->getMessage());
-        // }
+            Mail::to($user->email)->send(new SendLoginCredentials($user->username_en, $user->email, $password['not_hashed']));
+        } catch (\Exception $e) {
+            \Log::error('Email sending failed: ' . $e->getMessage());
+        }
                 return $user->id;
     }
     
