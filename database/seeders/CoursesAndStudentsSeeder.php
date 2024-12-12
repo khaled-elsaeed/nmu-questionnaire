@@ -138,13 +138,13 @@ class CoursesAndStudentsSeeder extends Seeder
        
         
             $questionnaireTarget = QuestionnaireTarget::create([
-                'questionnaire_id' => 1, // Assuming a fixed questionnaire ID
+                'questionnaire_id' => 1,
                 'course_detail_id' => $courseDetail->id,
                 'role_name' => 'student',
                 'scope_type' => 'local',
-                'start' => now(), // Setting current timestamp as start date
-                'end' => now()->addDays(5), // Assuming 30 days validity for the questionnaire
-                'is_active' => true, // Explicitly setting the active status
+                'start' => now(), 
+                'end' => now()->addDays(7), 
+                'is_active' => true, 
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
