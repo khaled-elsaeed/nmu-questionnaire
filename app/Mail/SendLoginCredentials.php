@@ -33,7 +33,7 @@ class SendLoginCredentials extends Mailable
      */
     public function build()
     {
-        return $this->subject('بيانات تسجيل دخول لنظام الأستبيانات')
+        return $this->subject('بيانات تسجيل دخول لنظام الاستبيانات')
                     ->view('emails.login_credentials') // Ensure this Blade view exists
                     ->with([
                         'username' => $this->username,

@@ -11,6 +11,10 @@ use App\Models\Program;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\SendLoginCredentials;
 use App\Models\StudentDetail;
+use App\Models\QuestionnaireTarget;
+use Exception;
+
+
 use App\Models\User;
 use App\Models\CourseEnrollment;
 use Carbon\Carbon;
@@ -45,6 +49,10 @@ class CoursesAndStudentsSeeder extends Seeder
 
             // Insert course details (without the teacher ID for now)
             $courseDetailId = $this->insertCourseDetails($data, $courseId);
+
+            
+           
+
 
             // Insert faculty information if necessary
             $facultyId = $this->insertFaculty($data);
@@ -86,7 +94,7 @@ class CoursesAndStudentsSeeder extends Seeder
         $courseName = $data[10]; 
 
         // Check if the course already exists
-        $courseExist = Course::where('course_code', $courseId)->first();
+        $courseExist = Course::where('name', $courseName)->first();
 
         if ($courseExist) {
             return $courseExist->id;
@@ -114,7 +122,7 @@ class CoursesAndStudentsSeeder extends Seeder
                                             ->first();
     
         if ($existingCourseDetail) {
-            // If course detail already exists, do nothing
+            // If course detail already exists, return its ID
             return $existingCourseDetail->id;
         }
     
@@ -123,12 +131,28 @@ class CoursesAndStudentsSeeder extends Seeder
             'course_id' => $courseId,
             'term' => $term,
             'academic_year' => $academicYear,
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
+            'created_at' => now(), // Use the `now()` helper for current timestamp
+            'updated_at' => now(),
         ]);
-
+    
+       
+        
+            $questionnaireTarget = QuestionnaireTarget::create([
+                'questionnaire_id' => 1,
+                'course_detail_id' => $courseDetail->id,
+                'role_name' => 'student',
+                'scope_type' => 'local',
+                'start' => now(), // 
+                'end' => now()->addDays(7), 
+                'is_active' => true, 
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        
+    
         return $courseDetail->id;
     }
+    
 
     private function insertFaculty(array $data)
     {
@@ -170,51 +194,51 @@ class CoursesAndStudentsSeeder extends Seeder
     }
 
     private function insertStudentDetails(array $data, int $facultyId, int $programId)
-    {
-        // Check if the user already exists
-        $existingUser = User::where('email', $data[13])->first(); 
+{
+    // Check if the user already exists
+    $existingUser = User::where('email', $data[13])->first(); 
 
-        if ($existingUser) {
-            // If user exists, we just use the existing user
-            $userId = $existingUser->id;
-        } else {
-            // If user does not exist, create a new user
-            $userId = $this->createUser($data); 
-        }
-
-        $user = User::find($userId);
-
-        // Assign 'student' role to the user if not already assigned
-        if (!$user->hasRole('student')) {
-            $user->assignRole('student');
-        }
-
-        // Check if the student detail already exists
-        $existingStudentDetail = StudentDetail::where('user_id', $userId)
-                                              ->where('faculty_id', $facultyId)
-                                              ->where('program_id', $programId)
-                                              ->first();
-
-        if ($existingStudentDetail) {
-            // If student details exist, do nothing
-            return $userId;
-        }
-
-        // Assign the academic level (assuming academic ID is in column 8)
-        $level = $this->getLevel($data[7]);
-
-        // Insert the student details
-        StudentDetail::create([
-            'user_id' => $userId,
-            'faculty_id' => $facultyId,
-            'program_id' => $programId,
-            'level' => $level,
-            'created_at' => Carbon::now(),
-            'updated_at' => Carbon::now(),
-        ]);
-
-        return $userId;
+    if ($existingUser) {
+        $userId = $existingUser->id;
+    } else {
+        $userId = $this->createUser($data); 
     }
+
+    $user = User::find($userId);
+
+    if (!$user) {
+        throw new Exception("Failed to create or retrieve user with ID: $userId.");
+    }
+
+    // Ensure the 'student' role exists and assign it to the user
+    if (!Role::where('name', 'student')->exists()) {
+        Role::create(['name' => 'student']);
+    }
+
+    if (!$user->hasRole('student')) {
+        $user->assignRole('student');
+    }
+
+    // Ensure the student details exist
+    $level = $this->getLevel($data[7]);
+
+    if (!$level) {
+        throw new Exception("Invalid level data: " . $data[7]);
+    }
+
+    StudentDetail::firstOrCreate([
+        'user_id' => $userId,
+        'faculty_id' => $facultyId,
+        'program_id' => $programId,
+    ], [
+        'level' => $level,
+        'created_at' => Carbon::now(),
+        'updated_at' => Carbon::now(),
+    ]);
+
+    return $userId;
+}
+
 
 
     

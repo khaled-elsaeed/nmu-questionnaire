@@ -9,6 +9,7 @@ use App\Models\QuestionnaireTarget;
 use App\Models\Questionuse;
 use App\Models\CourseDetail;
 use App\Services\QuestionnaireService;
+Use App\Exports\StatsExport;
 
 use App\Models\Course;
 use Illuminate\Http\Request;
@@ -95,6 +96,28 @@ public function showStats($questionnaireTargetId)
    
     // Return stats to the view
     return $this->questionnaireService->showStats($questionnaireTargetId);
+}
+
+public function generateReport($questionnaireId)
+{
+    try {
+        
+        $stats = $this->questionnaireService->showStats($questionnaireId, 'data');
+        Log::info('Starting the Excel report generation process. Stats received: ' . json_encode($stats));
+
+        if (isset($stats['questions']) && !empty($stats['questions'])) {
+            $export = new StatsExport();
+            $export->generateExcelReport($stats);
+        } else {
+            Log::error('Stats data is empty or missing "questions" key.');
+        }
+        
+       
+        
+    } catch (\Exception $exception) {
+        Log::error('Failed to generate report: ' . $exception->getMessage());
+        return response()->json(['success' => false, 'message' => 'Unable to generate report.'], 500);
+    }
 }
 
 

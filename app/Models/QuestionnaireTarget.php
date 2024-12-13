@@ -79,28 +79,20 @@ public function scopeForRole(Builder $query, string $role): Builder
 
     public function scopeScopeWithActiveNotResponded(Builder $query, $userId): Builder
     {
-        return $query->where(function ($query) use ($userId) {
-            $query->whereDoesntHave('responses', function ($subQuery) use ($userId) {
-                $subQuery->where('user_id', $userId); // Ensure the user hasn't responded
-            })
-            ->whereHas('questionnaire', function ($subQuery) {
-                $subQuery->where('end_date', '>', now()); // Ensure the questionnaire is active (end_date is in the future)
-            });
-        });
+        return $query->whereDoesntHave('responses', function ($subQuery) use ($userId) {
+            $subQuery->where('user_id', $userId);
+        })->where('end', '>', now());
     }
-    
 
     public function scopeWithDeadlinePassedOrResponded(Builder $query, $userId): Builder
     {
         return $query->where(function ($query) use ($userId) {
             $query->whereHas('responses', function ($subQuery) use ($userId) {
-                $subQuery->where('user_id', $userId); // Ensure the user has responded
-            })
-            ->orWhereHas('questionnaire', function ($subQuery) {
-                $subQuery->where('end_date', '<', now()); // Ensure the questionnaire's deadline has passed
-            });
+                $subQuery->where('user_id', $userId);
+            })->orWhere('end', '<', now());
         });
     }
+
     
 
 
