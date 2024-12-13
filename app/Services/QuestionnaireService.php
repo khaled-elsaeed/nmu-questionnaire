@@ -276,28 +276,22 @@ class QuestionnaireService
 
     public function showStats($questionnaireTargetId, $returnType = 'view')
     {
-        // Log the initial questionnaireTargetId
-        Log::info('Fetching stats for Questionnaire Target ID: ' . $questionnaireTargetId);
     
-        // Total responses (distinct users)
         $totalResponses = DB::table('responses')
             ->where('questionnaire_target_id', $questionnaireTargetId)
             ->distinct('user_id')
             ->count();
     
-        // Log the total responses
-        Log::info('Total Responses (Distinct Users): ' . $totalResponses);
     
         $stats = [
             'total_responses' => $totalResponses,
-            'questions' => [], // Store questions with stats here
-            'overall_average' => 0, // Placeholder for overall average
+            'questions' => [],
+            'overall_average' => 0,
         ];
     
-        $totalScore = 0; // This will accumulate the total score for calculating overall average
-        $questionsCount = 0; // Counter for questions with calculable averages
+        $totalScore = 0;
+        $questionsCount = 0;
     
-        // Fetch all questions for the questionnaire target
         $questions = DB::table('questions')
             ->join('questionnaire_questions', 'questions.id', '=', 'questionnaire_questions.question_id')
             ->join('questionnaires', 'questionnaire_questions.questionnaire_id', '=', 'questionnaires.id')
@@ -306,19 +300,15 @@ class QuestionnaireService
             ->select('questions.id', 'questions.text', 'questions.type')
             ->get();
     
-        // Log the questions being processed
-        Log::info('Fetched ' . $questions->count() . ' questions for Questionnaire Target ID: ' . $questionnaireTargetId);
     
         foreach ($questions as $question) {
-            // Create a structure for each question's stats
             $questionStats = [
                 'id' => $question->id,
                 'text' => $question->text,
                 'type' => $question->type,
-                'stats' => null, // Placeholder for the calculated stats
+                'stats' => null,
             ];
     
-            // Calculate stats based on the question type and associate with the question
             switch ($question->type) {
                 case 'text_based':
                     $questionStats['stats'] = $this->calculateTextBasedStats($question->id, $questionnaireTargetId);
@@ -327,7 +317,7 @@ class QuestionnaireService
                 case 'multiple_choice':
                     $questionStats['stats'] = $this->calculateMultipleChoiceStats($question->id, $questionnaireTargetId);
                     if (isset($questionStats['stats']['percentages'])) {
-                        $totalScore += array_sum($questionStats['stats']['percentages']); // Adding percentages as score
+                        $totalScore += array_sum($questionStats['stats']['percentages']);
                         $questionsCount++;
                     }
                     break;
@@ -336,35 +326,23 @@ class QuestionnaireService
             $stats['questions'][] = $questionStats;
         }
     
-        // Calculate overall average (as the average of all question averages)
         if ($questionsCount > 0) {
-            $stats['overall_average'] = round($totalScore / $questionsCount, 2); // Calculate average
+            $stats['overall_average'] = round($totalScore / $questionsCount, 2);
         }
     
         $questionnaire = QuestionnaireTarget::where('id', $questionnaireTargetId)->first();
     
-        // Decide the return type based on the $returnType argument
         if ($returnType === 'view') {
-            // Return the stats to the view
             return view('admin.questionnaires.stats', compact('questionnaire', 'stats'));
         } elseif ($returnType === 'data') {
-            // Return just the data as a JSON response or raw data
             return $stats;
         }
     
-        // Default case: return a JSON response
         return response()->json(['error' => 'Invalid return type specified']);
     }
     
-
-    
-
-    
     private function calculateTextBasedStats($questionId, $questionnaireTargetId)
     {
-        
-    
-        // Fetch text-based answers with counts
         $result = DB::table('answers')
             ->join('responses', 'answers.response_id', '=', 'responses.id')
             ->where('answers.question_id', $questionId)
@@ -373,51 +351,39 @@ class QuestionnaireService
             ->groupBy('answer_text')
             ->get();
     
-        // Log the result
-        Log::info('Text-Based Stats Result: ', $result->toArray());
     
         return $result;
     }
     
-
-    
     private function calculateMultipleChoiceStats($questionId, $questionnaireTargetId)
     {
-        
-
-        // Fetch all possible options for the question in their database order
         $options = DB::table('options')
             ->where('question_id', $questionId)
-            ->orderBy('id') // Ensures options are fetched in their natural database order
+            ->orderBy('id')
             ->select('id', 'text')
             ->get()
             ->keyBy('text');
-
-        Log::info('Multiple Choice Options: ', $options->toArray());
-
-        // Count the answers grouped by options
+    
+    
         $answers = DB::table('options')
             ->join('answers', 'options.id', '=', 'answers.option_id')
-            ->join('responses', 'answers.response_id', '=', 'responses.id') // INNER JOIN with responses
+            ->join('responses', 'answers.response_id', '=', 'responses.id')
             ->where('options.question_id', $questionId)
             ->where('responses.questionnaire_target_id', $questionnaireTargetId)
             ->select('options.text as option_text', DB::raw('COUNT(answers.id) as option_count'))
             ->groupBy('options.text')
             ->pluck('option_count', 'option_text')
             ->toArray();
-
-        
-
-        // Prepare the counts and percentages while preserving the database order
+            
+    
         $counts = [];
         $percentages = [];
         $totalResponses = array_sum($answers);
-
+    
         foreach ($options as $optionText => $option) {
-            // Ensure all options are represented, even if not answered
             $counts[$optionText] = $answers[$optionText] ?? 0;
         }
-
+    
         if ($totalResponses > 0) {
             foreach ($counts as $optionText => $count) {
                 $percentages[$optionText] = round(($count / $totalResponses) * 100, 2);
@@ -427,17 +393,13 @@ class QuestionnaireService
                 $percentages[$optionText] = 0;
             }
         }
-
-        
-        
-
+    
         return [
             'total_responses' => $totalResponses,
             'counts' => $counts,
             'percentages' => $percentages,
         ];
     }
-
     
     
 
