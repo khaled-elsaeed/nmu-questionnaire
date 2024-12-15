@@ -62,6 +62,7 @@
                                 <th>Course</th>
                                 <th>Faculty</th>
                                 <th>Program</th>
+                                <th>Responses</th>
                                 <th>Created At</th>
                                 <th>Updated At</th>
                                 <th>Actions</th>
@@ -80,19 +81,30 @@
                                     @endif
                                 </td>
                                 <td>
-                                    @if(isset($questionnaire->courseDetail) && isset($questionnaire->courseDetail->course->faculty))
-                                        {{ $questionnaire->courseDetail->course->faculty->name }}
-                                    @else
-                                        N/A
-                                    @endif
-                                </td>
+    @if(isset($questionnaire->courseDetail) && isset($questionnaire->courseDetail->course->faculty))
+        {{ $questionnaire->courseDetail->course->faculty->name }}
+    @else
+        Multiple Faculties
+    @endif
+</td>
+
+<td>
+    @if(isset($questionnaire->courseDetail) && isset($questionnaire->courseDetail->course->program))
+        {{ $questionnaire->courseDetail->course->program->name }}
+    @else
+        Multiple Programs
+    @endif
+</td>
+
                                 <td>
-                                    @if(isset($questionnaire->courseDetail) && isset($questionnaire->courseDetail->course->program))
-                                        {{ $questionnaire->courseDetail->course->program->name }}
-                                    @else
-                                        N/A
-                                    @endif
-                                </td>
+    @if($questionnaire->response_count > 0)
+        {{ $questionnaire->response_count }}
+    @else
+        N/A
+    @endif
+</td>
+
+
                                 <td>{{ $questionnaire->created_at->format('d M Y') }}</td>
                                 <td>{{ $questionnaire->updated_at->format('d M Y') }}</td>
                                 <td>

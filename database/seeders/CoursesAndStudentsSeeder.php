@@ -29,42 +29,27 @@ class CoursesAndStudentsSeeder extends Seeder
      */
     public function run(): void
     {
-        // Ensure the 'student' role exists
         Role::firstOrCreate(['name' => 'student']);
 
-        // Path to the CSV file
         $filePath = database_path('data/students_enrollments.csv');
 
-        // Load the spreadsheet
         $spreadsheet = $this->loadSpreadsheet($filePath);
         $sheet = $spreadsheet->getActiveSheet();
 
-        // Loop through each row in the sheet, starting from row 2 (skipping header)
         foreach ($sheet->getRowIterator(2) as $row) {
-            // Get data from the current row
             $data = $this->getRowData($row);
 
-            // Insert course if it doesn't exist
             $courseId = $this->insertCourses($data);
 
-            // Insert course details (without the teacher ID for now)
             $courseDetailId = $this->insertCourseDetails($data, $courseId);
 
-            
-           
-
-
-            // Insert faculty information if necessary
             $facultyId = $this->insertFaculty($data);
 
-            // Insert program information if necessary
-            $programId = $this->insertProgram($data, $facultyId);  // Now associates faculty ID
+            $programId = $this->insertProgram($data, $facultyId);  
 
-            // Insert student details
             $userId = $this->insertStudentDetails($data, $facultyId, $programId);
 
-            // Enroll the student in the course detail
-            $this->enrollStudentInCourse($userId, $courseDetailId);  // Using user_id to get student_id
+            $this->enrollStudentInCourse($userId, $courseDetailId);  
 
 
         }
@@ -93,8 +78,7 @@ class CoursesAndStudentsSeeder extends Seeder
         $courseId = $data[9];  
         $courseName = $data[10]; 
 
-        // Check if the course already exists
-        $courseExist = Course::where('name', $courseName)->first();
+        $courseExist = Course::where('course_code', $courseId)->first();
 
         if ($courseExist) {
             return $courseExist->id;
@@ -112,46 +96,46 @@ class CoursesAndStudentsSeeder extends Seeder
 
     private function insertCourseDetails(array $data, int $courseId)
     {
-        $term = 'spring';  // Assuming fixed value for now
-        $academicYear = '2024/2025'; // Assuming fixed value for now
+        $term = 'spring';  
+        $academicYear = '2024/2025'; 
     
-        // Check if the course detail already exists
         $existingCourseDetail = CourseDetail::where('course_id', $courseId)
                                             ->where('term', $term)
                                             ->where('academic_year', $academicYear)
                                             ->first();
     
         if ($existingCourseDetail) {
-            // If course detail already exists, return its ID
+            $questionnaireTarget = QuestionnaireTarget::where('course_detail_id', $existingCourseDetail->id)->first();
+            if ($questionnaireTarget && $questionnaireTarget->end < now()->addDays(6)) {
+                $questionnaireTarget->end = now()->addDays(6);
+                $questionnaireTarget->save();
+            }
             return $existingCourseDetail->id;
         }
     
-        // If course detail does not exist, create a new one
         $courseDetail = CourseDetail::create([
             'course_id' => $courseId,
             'term' => $term,
             'academic_year' => $academicYear,
-            'created_at' => now(), // Use the `now()` helper for current timestamp
+            'created_at' => now(), 
             'updated_at' => now(),
         ]);
     
-       
-        
-            $questionnaireTarget = QuestionnaireTarget::create([
-                'questionnaire_id' => 1,
-                'course_detail_id' => $courseDetail->id,
-                'role_name' => 'student',
-                'scope_type' => 'local',
-                'start' => now(), // 
-                'end' => now()->addDays(7), 
-                'is_active' => true, 
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        
+        QuestionnaireTarget::create([
+            'questionnaire_id' => 1,
+            'course_detail_id' => $courseDetail->id,
+            'role_name' => 'student',
+            'scope_type' => 'local',
+            'start' => now(), 
+            'end' => now()->addDays(7), 
+            'is_active' => true, 
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     
         return $courseDetail->id;
     }
+    
     
 
     private function insertFaculty(array $data)

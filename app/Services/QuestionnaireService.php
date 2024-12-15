@@ -276,12 +276,10 @@ class QuestionnaireService
 
     public function showStats($questionnaireTargetId, $returnType = 'view')
     {
-    
         $totalResponses = DB::table('responses')
             ->where('questionnaire_target_id', $questionnaireTargetId)
             ->distinct('user_id')
             ->count();
-    
     
         $stats = [
             'total_responses' => $totalResponses,
@@ -300,7 +298,6 @@ class QuestionnaireService
             ->select('questions.id', 'questions.text', 'questions.type')
             ->get();
     
-    
         foreach ($questions as $question) {
             $questionStats = [
                 'id' => $question->id,
@@ -316,8 +313,8 @@ class QuestionnaireService
     
                 case 'multiple_choice':
                     $questionStats['stats'] = $this->calculateMultipleChoiceStats($question->id, $questionnaireTargetId);
-                    if (isset($questionStats['stats']['percentages'])) {
-                        $totalScore += array_sum($questionStats['stats']['percentages']);
+                    if (isset($questionStats['stats']['average'])) {
+                        $totalScore += $questionStats['stats']['average'];
                         $questionsCount++;
                     }
                     break;
@@ -335,10 +332,33 @@ class QuestionnaireService
         if ($returnType === 'view') {
             return view('admin.questionnaires.stats', compact('questionnaire', 'stats'));
         } elseif ($returnType === 'data') {
-            return $stats;
+            return [
+                'questionnaire' => $questionnaire,
+                'stats' => $stats,
+            ];
         }
     
         return response()->json(['error' => 'Invalid return type specified']);
+    }
+    
+    private function calculateOverallAverageScore($questionStats)
+    {
+        $totalScore = 0;
+        $questionsCount = 0;
+    
+        foreach ($questionStats['questions'] as $question) {
+            if (isset($question['stats']['average'])) {
+                $totalScore += $question['stats']['average'];
+                $questionsCount++;
+            }
+        }
+    
+        $average = 0;
+        if ($questionsCount > 0) {
+            $average = round($totalScore / $questionsCount, 2);
+        }
+    
+        return $average;
     }
     
     private function calculateTextBasedStats($questionId, $questionnaireTargetId)
@@ -351,19 +371,25 @@ class QuestionnaireService
             ->groupBy('answer_text')
             ->get();
     
-    
         return $result;
     }
     
     private function calculateMultipleChoiceStats($questionId, $questionnaireTargetId)
     {
+        $ratingMap = [
+            'ضعيف' => 1,
+            'مقبول' => 2,
+            'جيد' => 3,
+            'جيد جدا' => 4,
+            'ممتاز' => 5
+        ];
+    
         $options = DB::table('options')
             ->where('question_id', $questionId)
             ->orderBy('id')
             ->select('id', 'text')
             ->get()
             ->keyBy('text');
-    
     
         $answers = DB::table('options')
             ->join('answers', 'options.id', '=', 'answers.option_id')
@@ -374,14 +400,24 @@ class QuestionnaireService
             ->groupBy('options.text')
             ->pluck('option_count', 'option_text')
             ->toArray();
-            
     
         $counts = [];
         $percentages = [];
         $totalResponses = array_sum($answers);
+        $numericAnswers = [];
     
         foreach ($options as $optionText => $option) {
             $counts[$optionText] = $answers[$optionText] ?? 0;
+    
+            if (isset($answers[$optionText]) && $answers[$optionText] > 0) {
+                $numericAnswers = array_merge($numericAnswers, array_fill(0, $answers[$optionText], $ratingMap[$optionText] ?? 0));
+            }
+        }
+    
+        $average = 0;
+        if (count($numericAnswers) > 0) {
+            $sum = array_sum($numericAnswers);
+            $average = round($sum / count($numericAnswers), 2);
         }
     
         if ($totalResponses > 0) {
@@ -398,9 +434,11 @@ class QuestionnaireService
             'total_responses' => $totalResponses,
             'counts' => $counts,
             'percentages' => $percentages,
+            'average' => $average,
         ];
     }
     
+
     
 
 }

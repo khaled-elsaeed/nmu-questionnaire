@@ -8,11 +8,11 @@
     </a>
 </div>
 
-<div class="col-lg-12 mb-4">
+<!-- <div class="col-lg-12 mb-4">
     <a href="{{ route('admin.questionnaires.generate-report', ['id' => $questionnaire->id]) }}" class="btn btn-success btn-sm rounded-pill">
         <i class="fa fa-download me-2"></i> إنشاء التقرير
     </a>
-</div>
+</div> -->
 
 
 <!-- Main Content Section -->
@@ -30,6 +30,23 @@
             <h4 class="mb-4">
             إجمالي الردود:<span class="badge bg-success">{{ $stats['total_responses'] }}</span>
             </h4>
+            <h4 class="mb-4">
+    متوسط الردود: 
+    @if($stats['overall_average'] >= 4.5)
+        <span class="badge bg-success">ممتاز</span>
+    @elseif($stats['overall_average'] >= 3.5)
+        <span class="badge bg-warning">جيد جدا</span> 
+    @elseif($stats['overall_average'] >= 2.5)
+        <span class="badge bg-primary">جيد</span>
+    @else
+        <span class="badge bg-danger">مقبول</span> 
+    @endif
+        ({{ $stats['overall_average'] }})
+
+</h4>
+
+
+
         </div>
     </div>
 
@@ -47,16 +64,30 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($stats['questions'] as $questionStats)
-                                @if($questionStats['type'] == 'multiple_choice' && isset($questionStats['stats']['percentages']))
-                                    <tr>
-                                        <td>{{ $questionStats['text'] }}</td>
-                                        @foreach($questionStats['stats']['percentages'] as $option => $percentage)
-                                            <td>{{ $option }} ({{ $percentage }}%)</td>
-                                        @endforeach
-                                    </tr>
-                                @endif
-                            @endforeach
+                        @foreach($stats['questions'] as $questionStats)
+    @if($questionStats['type'] == 'multiple_choice' && isset($questionStats['stats']['percentages']))
+        <tr>
+            <td>{{ $questionStats['text'] }}</td>
+            @foreach($questionStats['stats']['percentages'] as $option => $percentage)
+                <td>
+                    {{ $option }} 
+                    ({{ $percentage }}%) 
+                    - {{ $questionStats['stats']['counts'][$option] }} Responses
+                </td>
+            @endforeach
+            <td>Average: ({{ $questionStats['stats']['average'] }})  @if($questionStats['stats']['average'] >= 4.5)
+        <span class="badge bg-success">ممتاز</span> 
+    @elseif($questionStats['stats']['average'] >= 3.5)
+        <span class="badge bg-warning">جيد جدا</span>
+    @elseif($questionStats['stats']['average'] >= 2.5)
+        <span class="badge bg-primary">جيد</span> 
+    @else
+        <span class="badge bg-danger">مقبول</span> 
+    @endif</td>
+        </tr>
+    @endif
+@endforeach
+
                         </tbody>
                     </table>
                 </div>

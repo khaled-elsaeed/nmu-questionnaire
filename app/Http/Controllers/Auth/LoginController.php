@@ -54,8 +54,15 @@ class LoginController extends Controller
             RateLimiter::clear($rateLimiterKey);
 
             if ($this->loginService->isAdmin($user)) {
-                return redirect()->route('admin.home');
+                if ($user->hasRole('super_admin')) {
+                    // Redirect to Super Admin Home page
+                    return redirect()->route('admin.home');
+                } elseif ($user->hasRole('admin')) {
+                    // Redirect to Admin Results page
+                    return redirect()->route('admin.questionnaires.results');
+                }
             }
+            
 
             if ($this->loginService->isStudent($user)) {
                 $studentChecks = $this->loginService->handleStudentAfterLogin($user);

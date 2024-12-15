@@ -10,6 +10,7 @@ use App\Models\Questionuse;
 use App\Models\CourseDetail;
 use App\Services\QuestionnaireService;
 Use App\Exports\StatsExport;
+use App\Models\User;
 
 use App\Models\Course;
 use Illuminate\Http\Request;
@@ -78,17 +79,40 @@ public function destroy($id)
 
 
 
-public function results()
-{
+public function results() {
     try {
-        $questionnaires = QuestionnaireTarget::with('questionnaire')->get();
-
+        if (auth()->user()->hasRole('super_admin')) {
+            $questionnaires = QuestionnaireTarget::withCount('responses as response_count')
+                                                 ->with('questionnaire')
+                                                 ->get();
+        } else {
+            $user = auth()->user();
+            $facultyId = $this->getFacultyIdFromRole($user);
+            $questionnaires = QuestionnaireTarget::whereHas('courseDetail.course', function ($query) use ($facultyId) {
+                $query->where('faculty_id', $facultyId);
+            })
+            ->withCount('responses as response_count')
+            ->with('questionnaire')
+            ->get();
+        }
+         
         return view('admin.questionnaires.result', compact('questionnaires'));
     } catch (\Exception $exception) {
         Log::error('Failed to retrieve questionnaires in results method: ' . $exception->getMessage());
         return response()->json(['success' => false, 'message' => 'Unable to retrieve questionnaires.'], 500);
     }
 }
+
+private function getFacultyIdFromRole(User $user) {
+    foreach ($user->getRoleNames() as $role) {
+        if (strpos($role, '_fac_') !== false) {
+            return (int)substr($role, strpos($role, '_fac_') + 5);
+        }
+    }
+     
+    return null;
+}
+
 
 
 public function showStats($questionnaireTargetId)
@@ -117,6 +141,22 @@ public function generateReport($questionnaireId)
     } catch (\Exception $exception) {
         Log::error('Failed to generate report: ' . $exception->getMessage());
         return response()->json(['success' => false, 'message' => 'Unable to generate report.'], 500);
+    }
+    try {
+        $questionnaire = Questionnaire::findOrFail($id);
+        $stats = $this->questionnaireService->showStats($id,'data');
+
+        // Render the view to HTML
+        $pdf = Pdf::loadView('admin.questionnaires.pdf_report', [
+            'questionnaire' => $questionnaire,
+            'stats' => $stats,
+        ]);
+
+        // Return the PDF file
+        return $pdf->download('questionnaire_report_' . $questionnaire->id . '.pdf');
+    } catch (\Exception $exception) {
+        Log::error('Failed to generate PDF report: ' . $exception->getMessage());
+        return response()->json(['success' => false, 'message' => 'Unable to generate PDF report.'], 500);
     }
 }
 

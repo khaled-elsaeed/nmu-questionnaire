@@ -15,12 +15,14 @@
     <div class="navigationbar">
         <ul class="vertical-menu">
             <!-- Dashboard Link -->
+            @if(auth()->user()->hasRole('super_admin'))
             <li>
                 <a href="{{ route('admin.home') }}">
                     <img src="{{ asset('images/svg-icon/dashboard.svg') }}" class="img-fluid" alt="dashboard">
                     <span>Dashboard</span>
                 </a>
             </li>
+            @endif
 
             <!-- Questionnaires Link -->
             <li>
@@ -30,42 +32,36 @@
                     <i class="feather icon-chevron-right pull-right"></i>
                 </a>
                 <ul class="vertical-submenu">
-                    <li><a href="{{ route('admin.questionnaires.index') }}">View Questionnaires</a></li>
-                    <li><a href="{{ route('admin.questionnaires.create') }}">Create Questionnaire</a></li>
-                    <li><a href="{{ route('admin.questionnaires.results') }}">View Results</a></li>
+                    @if(auth()->user()->hasRole('super_admin'))
+                        <!-- Super Admin: Show All Links -->
+                        <li><a href="{{ route('admin.questionnaires.index') }}">View Questionnaires</a></li>
+                        <li><a href="{{ route('admin.questionnaires.create') }}">Create Questionnaire</a></li>
+                        <li><a href="{{ route('admin.questionnaires.results') }}">View Results</a></li>
+                    @elseif(auth()->user()->hasRole('admin'))
+                        <!-- Admin: Only Show Results Link -->
+                        <li><a href="{{ route('admin.questionnaires.results') }}">View Results</a></li>
+                    @endif
                 </ul>
             </li>
+            @if(auth()->user()->hasRole('super_admin'))
 
+            <!-- Question Modules Link -->
             <li class="{{ request()->is('admin/question-modules*') ? 'active' : '' }}">
-    <a href="#">
-        <img src="{{ asset('images/svg-icon/layouts.svg') }}" class="img-fluid" alt="modules">
-        <span>Question Modules</span>
-        <i class="feather icon-chevron-right pull-right"></i>
-    </a>
-    <ul class="vertical-submenu">
-    <li class="{{ request()->routeIs('admin.question-modules.index') ? 'active' : '' }}">
-            <a href="{{ route('admin.question-modules.index') }}">View Modules</a>
-            @if(request()->routeIs('admin.question-modules.module'))
-                @php
-                    $moduleId = request()->route('id');
-                    $module = \App\Models\QuestionModule::findOrFail($moduleId); // Use findOrFail for better error handling
-                @endphp
-
+                <a href="#">
+                    <img src="{{ asset('images/svg-icon/layouts.svg') }}" class="img-fluid" alt="modules">
+                    <span>Question Modules</span>
+                    <i class="feather icon-chevron-right pull-right"></i>
+                </a>
                 <ul class="vertical-submenu">
-                    <li>
-                        <a href="{{ route('admin.question-modules.module', $module->id) }}">
-                            {{ $module->name }}
-                        </a>
-                    </li>
+                        <!-- Super Admin: Show All Module Links -->
+                        <li class="{{ request()->routeIs('admin.question-modules.index') ? 'active' : '' }}">
+                            <a href="{{ route('admin.question-modules.index') }}">View Modules</a>
+                        </li>
+                        <li><a href="{{ route('admin.question-modules.create') }}">Create Module</a></li>
+                   
                 </ul>
+            </li>
             @endif
-        </li>
-        <li>
-            <a href="{{ route('admin.question-modules.create') }}">Create Module</a>
-        </li>
-        
-    </ul>
-</li>
 
         </ul>
     </div>
