@@ -2,12 +2,22 @@
 <div class="sidebar">
     <!-- Start Logobar -->
     <div class="logobar">
-        <a href="{{ route('admin.home') }}" class="logo logo-large">
-            <img src="{{ asset('images/logo-wide.png') }}" class="img-fluid" alt="logo">
-        </a>
-        <a href="{{ route('admin.home') }}" class="logo logo-small">
-            <img src="{{ asset('images/logo.png') }}" class="img-fluid" alt="logo">
-        </a>
+    @if(auth()->user()->hasRole('super_admin'))
+    <a href="{{ route('admin.home') }}" class="logo logo-large">
+        <img src="{{ asset('images/logo-wide.png') }}" class="img-fluid" alt="logo">
+    </a>
+    <a href="{{ route('admin.home') }}" class="logo logo-small">
+        <img src="{{ asset('images/logo.png') }}" class="img-fluid" alt="logo">
+    </a>
+@elseif(auth()->user()->hasRole('admin'))
+    <a href="javascript:void(0)" class="logo logo-large">
+        <img src="{{ asset('images/logo-wide.png') }}" class="img-fluid" alt="logo">
+    </a>
+    <a href="javascript:void(0)" class="logo logo-small">
+        <img src="{{ asset('images/logo.png') }}" class="img-fluid" alt="logo">
+    </a>
+@endif
+
     </div>
     <!-- End Logobar -->
 
