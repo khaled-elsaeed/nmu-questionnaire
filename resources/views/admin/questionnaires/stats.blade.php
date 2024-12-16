@@ -8,11 +8,11 @@
     </a>
 </div>
 
-<!-- <div class="col-lg-12 mb-4">
+<div class="col-lg-12 mb-4">
     <a href="{{ route('admin.questionnaires.generate-report', ['id' => $questionnaire->id]) }}" class="btn btn-success btn-sm rounded-pill">
         <i class="fa fa-download me-2"></i> إنشاء التقرير
     </a>
-</div> -->
+</div>
 
 
 <!-- Main Content Section -->

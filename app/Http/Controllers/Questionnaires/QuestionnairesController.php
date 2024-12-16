@@ -127,11 +127,11 @@ public function generateReport($questionnaireId)
     try {
         
         $stats = $this->questionnaireService->showStats($questionnaireId, 'data');
-        Log::info('Starting the Excel report generation process. Stats received: ' . json_encode($stats));
 
-        if (isset($stats['questions']) && !empty($stats['questions'])) {
+        if (isset($stats['stats']) && !empty($stats['stats'])) {
             $export = new StatsExport();
             $export->generateExcelReport($stats);
+            Log::error('Stats data is empty or missing "questions" key.');
         } else {
             Log::error('Stats data is empty or missing "questions" key.');
         }
@@ -142,22 +142,7 @@ public function generateReport($questionnaireId)
         Log::error('Failed to generate report: ' . $exception->getMessage());
         return response()->json(['success' => false, 'message' => 'Unable to generate report.'], 500);
     }
-    try {
-        $questionnaire = Questionnaire::findOrFail($id);
-        $stats = $this->questionnaireService->showStats($id,'data');
-
-        // Render the view to HTML
-        $pdf = Pdf::loadView('admin.questionnaires.pdf_report', [
-            'questionnaire' => $questionnaire,
-            'stats' => $stats,
-        ]);
-
-        // Return the PDF file
-        return $pdf->download('questionnaire_report_' . $questionnaire->id . '.pdf');
-    } catch (\Exception $exception) {
-        Log::error('Failed to generate PDF report: ' . $exception->getMessage());
-        return response()->json(['success' => false, 'message' => 'Unable to generate PDF report.'], 500);
-    }
+ 
 }
 
 
